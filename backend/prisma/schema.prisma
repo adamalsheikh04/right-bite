@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id                Int                   @id @default(autoincrement())
+  email             String                @unique
+  passwordHash      String
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  profile           Profile?
+  weightLogs        WeightLog[]
+  mealPlanPrefs     MealPlanPreference[]
+  mealPlans         MealPlan[]
+  mealLogs          MealLog[]
+  aiRecommendations AiRecommendation[]
+}
+
+model Profile {
+  id                   Int      @id @default(autoincrement())
+  userId               Int      @unique
+  fullName             String
+  age                  Int
+  sex                  String
+  heightCm             Float
+  currentWeightKg      Float
+  targetWeightKg       Float?
+  goal                 String
+  activityLevel        String
+  primaryDietaryStyle  String
+  allergiesText        String
+  dislikedFoodsText    String
+  targetCalories       Int
+  targetProteinG       Int
+  targetCarbsG         Int
+  targetFatG           Int
+  manualOverride       Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model WeightLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  weightKg  Float
+  loggedAt  DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MealPlanPreference {
+  id                 Int      @id @default(autoincrement())
+  userId             Int
+  mealsPerDay        Int
+  proteinSourcesJson String
+  avoidFoodsText     String
+  cookingEffort      String
+  budgetLevel        String
+  cuisineStyle       String
+  varietyLevel       String
+  extraNotes         String?
+  createdAt          DateTime @default(now())
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mealPlans MealPlan[]
+}
+
+model MealPlan {
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  preferenceId     Int
+  weekStartDate    DateTime
+  weekEndDate      DateTime
+  status           String
+  generatedByModel String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preference   MealPlanPreference @relation(fields: [preferenceId], references: [id], onDelete: Cascade)
+  days         MealPlanDay[]
+  groceryItems GroceryItem[]
+}
+
+model MealPlanDay {
+  id            Int      @id @default(autoincrement())
+  mealPlanId    Int
+  dayName       String
+  dayOrder      Int
+  totalCalories Int
+  totalProteinG Int
+  totalCarbsG   Int
+  totalFatG     Int
+  createdAt     DateTime @default(now())
+
+  mealPlan MealPlan      @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+  meals    MealPlanMeal[]
+}
+
+model MealPlanMeal {
+  id               Int      @id @default(autoincrement())
+  mealPlanDayId    Int
+  mealType         String
+  mealOrder        Int
+  mealName         String
+  description      String
+  ingredientsText  String
+  estimatedWeightG Float?
+  calories         Int
+  proteinG         Int
+  carbsG           Int
+  fatG             Int
+  createdAt        DateTime @default(now())
+
+  mealPlanDay MealPlanDay @relation(fields: [mealPlanDayId], references: [id], onDelete: Cascade)
+}
+
+model GroceryItem {
+  id           Int      @id @default(autoincrement())
+  mealPlanId   Int
+  itemName     String
+  quantityText String
+  category     String?
+  isChecked    Boolean  @default(false)
+  isUserAdded  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  mealPlan MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+}
+
+model MealLog {
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  mealType         String
+  source           String
+  mealName         String
+  description      String?
+  calories         Int
+  proteinG         Int
+  carbsG           Int
+  fatG             Int
+  estimatedWeightG Float?
+  photoPath        String?
+  loggedDate       DateTime
+  loggedTime       DateTime
+  createdAt        DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AiRecommendation {
+  id                 Int      @id @default(autoincrement())
+  userId             Int
+  recommendationText String
+  recommendationType String
+  basedOnDate        DateTime
+  createdAt          DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
