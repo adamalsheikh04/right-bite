@@ -81,6 +81,10 @@ model MealPlan {
   weekEndDate      DateTime
   status           String
   generatedByModel String?
+  generationMode   String?
+  generationNotes  String?
+  failureReason    String?
+  promptVersion    String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 

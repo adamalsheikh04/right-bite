@@ -22,6 +22,8 @@ function ProfilePage() {
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -40,23 +42,25 @@ function ProfilePage() {
 
         if (response.ok) {
           const data = await response.json();
+          const p = data.data;
           // Pre-fill form with existing data
           setFormData({
-            fullName: data.fullName || "",
-            age: data.age || "",
-            sex: data.sex || "",
-            heightCm: data.heightCm || "",
-            currentWeightKg: data.currentWeightKg || "",
-            targetWeightKg: data.targetWeightKg || "",
-            goal: data.goal || "",
-            activityLevel: data.activityLevel || "",
-            primaryDietaryStyle: data.primaryDietaryStyle || "",
-            allergiesText: data.allergiesText || "",
-            dislikedFoodsText: data.dislikedFoodsText || "",
+            fullName: p.fullName || "",
+            age: p.age || "",
+            sex: p.sex || "",
+            heightCm: p.heightCm || "",
+            currentWeightKg: p.currentWeightKg || "",
+            targetWeightKg: p.targetWeightKg || "",
+            goal: p.goal || "",
+            activityLevel: p.activityLevel || "",
+            primaryDietaryStyle: p.primaryDietaryStyle || "",
+            allergiesText: p.allergiesText || "",
+            dislikedFoodsText: p.dislikedFoodsText || "",
           });
         }
       } catch (error) {
         console.error("Failed to fetch profile:", error);
+        setError("Failed to load profile data.");
       } finally {
         setFetching(false);
       }
@@ -75,6 +79,8 @@ function ProfilePage() {
   const handleSave = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
+    setSuccess(null);
 
     const token = localStorage.getItem("token");
 
@@ -91,20 +97,20 @@ function ProfilePage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Profile saved successfully!");
-        navigate("/dashboard");
+        setSuccess("Profile saved successfully!");
+        setTimeout(() => navigate("/dashboard"), 1500);
       } else {
-        alert(data.message || "Failed to save profile");
+        setError(data.message || "Failed to save profile");
       }
     } catch (error) {
       console.error("Save profile error:", error);
-      alert("Something went wrong");
+      setError("Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
-  if (authLoading || fetching) return <div style={{ padding: 20 }}>Loading...</div>;
+  if (authLoading || fetching) return <div style={{ padding: 20 }}>Loading profile...</div>;
 
   if (!user) {
     return (
@@ -118,6 +124,19 @@ function ProfilePage() {
   return (
     <div style={{ padding: 20 }}>
       <h2>Profile Setup</h2>
+      
+      {error && (
+        <div style={{ padding: "12px", background: "#f8d7da", color: "#721c24", borderRadius: "6px", marginBottom: "16px", fontSize: "14px", border: "1px solid #f5c6cb" }}>
+          {error}
+        </div>
+      )}
+      
+      {success && (
+        <div style={{ padding: "12px", background: "#d4edda", color: "#155724", borderRadius: "6px", marginBottom: "16px", fontSize: "14px", border: "1px solid #c3e6cb" }}>
+          {success}
+        </div>
+      )}
+
       <form onSubmit={handleSave}>
         <div style={{ marginBottom: 10 }}>
           <label>Full Name</label><br />
