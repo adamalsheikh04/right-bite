@@ -1,16 +1,22 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import AuthLayout from "../components/AuthLayout";
+import Card from "../components/Card";
+import Input from "../components/Input";
+import Button from "../components/Button";
 
 function RegisterPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  async function handleRegister() {
+  async function handleRegister(e) {
+    if (e && e.preventDefault) e.preventDefault();
     if (password !== confirmPassword) {
       alert("Passwords do not match");
       return;
@@ -23,6 +29,7 @@ function RegisterPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          name: fullName,
           email,
           password,
         }),
@@ -44,43 +51,71 @@ function RegisterPage() {
     }
   }
 
-  return (
-    <div style={{ padding: 20 }}>
-      <h2>Register</h2>
-
-      <div style={{ marginBottom: 10 }}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </div>
-
-      <div style={{ marginBottom: 10 }}>
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-      </div>
-
-      <div style={{ marginBottom: 10 }}>
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-        />
-      </div>
-
-      <button onClick={handleRegister}>Register</button>
-
-      <p>
-        Already have an account? <Link to="/">Login</Link>
+  const cardHeader = (
+    <div style={{ textAlign: "center", paddingTop: "0.5rem" }}>
+      <div style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>🌿</div>
+      <h1 style={{ fontSize: "1.5rem", color: "var(--text-h)", marginBottom: "0.5rem" }}>
+        Create an account
+      </h1>
+      <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", margin: 0 }}>
+        Start your personalized nutrition journey today
       </p>
     </div>
+  );
+
+  return (
+    <AuthLayout>
+      <Card header={cardHeader}>
+        <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <Input
+            label="Full Name"
+            type="text"
+            placeholder="Enter your full name"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            required
+          />
+          
+          <Input
+            label="Email Address"
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          
+          <Input
+            label="Password"
+            type="password"
+            placeholder="Create a password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+
+          <Input
+            label="Confirm Password"
+            type="password"
+            placeholder="Confirm your password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+
+          <Button type="submit" variant="primary" size="lg" fullWidth style={{ marginTop: '0.5rem' }}>
+            Create Account
+          </Button>
+        </form>
+
+        <div style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "0.875rem" }}>
+          <span style={{ color: "var(--text-muted)" }}>Already have an account? </span>
+          <Link to="/" style={{ fontWeight: 500 }}>
+            Log in
+          </Link>
+        </div>
+      </Card>
+    </AuthLayout>
   );
 }
 

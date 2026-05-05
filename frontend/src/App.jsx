@@ -9,6 +9,7 @@ import GroceryPage from "./pages/GroceryPage";
 import LogMealPage from "./pages/LogMealPage";
 import ProgressPage from "./pages/ProgressPage";
 import SettingsPage from "./pages/SettingsPage";
+import NotificationsPage from "./pages/NotificationsPage";
 import { AuthProvider } from "./context/AuthContext";
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
         <Route path="/log-meal" element={<LogMealPage />} />
         <Route path="/progress" element={<ProgressPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
       </Routes>
       </BrowserRouter>
     </AuthProvider>
