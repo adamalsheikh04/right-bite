@@ -25,8 +25,8 @@ export function AuthProvider({ children }) {
       });
 
       if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
+        const json = await response.json();
+        setUser(json.data);
       } else {
         localStorage.removeItem("token");
       }

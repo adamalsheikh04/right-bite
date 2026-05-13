@@ -43,7 +43,7 @@ function RegisterPage() {
       }
 
       alert("Registered successfully");
-      login(data.user, data.token);
+      login(data.data.user, data.data.token);
       navigate("/profile");
     } catch (error) {
       console.error(error);

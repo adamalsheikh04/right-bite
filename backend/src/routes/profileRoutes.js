@@ -1,35 +1,36 @@
 const express = require("express");
 const prisma = require("../lib/prisma");
 const authMiddleware = require("../middleware/authMiddleware");
+const validateRequest = require("../middleware/validateRequest");
+const { profileUpsertSchema } = require("../lib/validators/profileValidator");
 const { calculateTargets } = require("../lib/nutritionCalculator");
+const { sendSuccess, sendError } = require("../lib/responseHelper");
 
 const router = express.Router();
 
-router.use((req, res, next) => {
-  console.log(`[Profile Route] ${req.method} ${req.path}`);
-  next();
-});
-
-// GET current user's profile
-router.get("/profile", authMiddleware, async (req, res) => {
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /api/profile — Get the logged-in user's profile
+// ─────────────────────────────────────────────────────────────────────────────
+router.get("/profile", authMiddleware, async (req, res, next) => {
   try {
     const profile = await prisma.profile.findUnique({
       where: { userId: req.user.userId },
     });
 
     if (!profile) {
-      return res.status(404).json({ message: "Profile not found" });
+      return sendError(res, "Profile not found. Please complete your profile setup.", 404);
     }
 
-    res.status(200).json(profile);
+    return sendSuccess(res, profile);
   } catch (error) {
-    console.error("GET profile error:", error);
-    res.status(500).json({ message: "Something went wrong" });
+    next(error);
   }
 });
 
-// CREATE or UPDATE profile
-router.put("/profile", authMiddleware, async (req, res) => {
+// ─────────────────────────────────────────────────────────────────────────────
+// PUT /api/profile — Create or update the user's profile
+// ─────────────────────────────────────────────────────────────────────────────
+router.put("/profile", authMiddleware, validateRequest(profileUpsertSchema), async (req, res, next) => {
   try {
     const userId = req.user.userId;
     const {
@@ -46,62 +47,33 @@ router.put("/profile", authMiddleware, async (req, res) => {
       dislikedFoodsText,
     } = req.body;
 
-    // 1. Basic Validation
-    if (!fullName || !age || !sex || !heightCm || !currentWeightKg || !goal || !activityLevel) {
-      return res.status(400).json({ message: "Required fields are missing" });
-    }
+    // Calculate nutritional targets from validated data
+    const targets = calculateTargets({ age, sex, heightCm, currentWeightKg, goal, activityLevel });
 
-    // 2. Calculate Nutritional Targets
-    const targets = calculateTargets({
-      age: Number(age),
+    const profileData = {
+      fullName,
+      age,
       sex,
-      heightCm: Number(heightCm),
-      currentWeightKg: Number(currentWeightKg),
+      heightCm,
+      currentWeightKg,
+      targetWeightKg: targetWeightKg ?? null,
       goal,
       activityLevel,
-    });
+      primaryDietaryStyle: primaryDietaryStyle || "none",
+      allergiesText: allergiesText || "",
+      dislikedFoodsText: dislikedFoodsText || "",
+      ...targets,
+    };
 
-    // 3. Upsert Profile (Update if exists, Create if not)
     const profile = await prisma.profile.upsert({
-      where: { userId: userId },
-      update: {
-        fullName,
-        age: Number(age),
-        sex,
-        heightCm: Number(heightCm),
-        currentWeightKg: Number(currentWeightKg),
-        targetWeightKg: targetWeightKg ? Number(targetWeightKg) : null,
-        goal,
-        activityLevel,
-        primaryDietaryStyle,
-        allergiesText: allergiesText || "",
-        dislikedFoodsText: dislikedFoodsText || "",
-        ...targets, // Spreads targetCalories, targetProteinG, etc.
-      },
-      create: {
-        userId: userId,
-        fullName,
-        age: Number(age),
-        sex,
-        heightCm: Number(heightCm),
-        currentWeightKg: Number(currentWeightKg),
-        targetWeightKg: targetWeightKg ? Number(targetWeightKg) : null,
-        goal,
-        activityLevel,
-        primaryDietaryStyle,
-        allergiesText: allergiesText || "",
-        dislikedFoodsText: dislikedFoodsText || "",
-        ...targets,
-      },
+      where: { userId },
+      update: profileData,
+      create: { userId, ...profileData },
     });
 
-    res.status(200).json({
-      message: "Profile saved successfully",
-      profile,
-    });
+    return sendSuccess(res, profile);
   } catch (error) {
-    console.error("PUT profile error:", error);
-    res.status(500).json({ message: "Something went wrong" });
+    next(error);
   }
 });
 

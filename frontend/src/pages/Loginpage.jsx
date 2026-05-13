@@ -34,8 +34,8 @@ function LoginPage() {
         return;
       }
 
-      localStorage.setItem("token", data.token);
-      login(data.user, data.token);
+      localStorage.setItem("token", data.data.token);
+      login(data.data.user, data.data.token);
 
       alert("Login successful");
       navigate("/dashboard");

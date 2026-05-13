@@ -26,7 +26,12 @@ function ProfilePage() {
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+<<<<<<< HEAD
   const [isEditing, setIsEditing] = useState(false);
+=======
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+>>>>>>> 1315923189aa35117d277d46e10b2880fdf7d10b
 
   useEffect(() => {
     async function fetchProfile() {
@@ -45,23 +50,25 @@ function ProfilePage() {
 
         if (response.ok) {
           const data = await response.json();
+          const p = data.data;
           // Pre-fill form with existing data
           setFormData({
-            fullName: data.fullName || "",
-            age: data.age || "",
-            sex: data.sex || "",
-            heightCm: data.heightCm || "",
-            currentWeightKg: data.currentWeightKg || "",
-            targetWeightKg: data.targetWeightKg || "",
-            goal: data.goal || "",
-            activityLevel: data.activityLevel || "",
-            primaryDietaryStyle: data.primaryDietaryStyle || "",
-            allergiesText: data.allergiesText || "",
-            dislikedFoodsText: data.dislikedFoodsText || "",
+            fullName: p.fullName || "",
+            age: p.age || "",
+            sex: p.sex || "",
+            heightCm: p.heightCm || "",
+            currentWeightKg: p.currentWeightKg || "",
+            targetWeightKg: p.targetWeightKg || "",
+            goal: p.goal || "",
+            activityLevel: p.activityLevel || "",
+            primaryDietaryStyle: p.primaryDietaryStyle || "",
+            allergiesText: p.allergiesText || "",
+            dislikedFoodsText: p.dislikedFoodsText || "",
           });
         }
       } catch (error) {
         console.error("Failed to fetch profile:", error);
+        setError("Failed to load profile data.");
       } finally {
         setFetching(false);
       }
@@ -80,6 +87,8 @@ function ProfilePage() {
   const handleSave = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
+    setSuccess(null);
 
     const token = localStorage.getItem("token");
 
@@ -96,19 +105,25 @@ function ProfilePage() {
       const data = await response.json();
 
       if (response.ok) {
+<<<<<<< HEAD
         alert("Profile saved successfully!");
         setIsEditing(false);
+=======
+        setSuccess("Profile saved successfully!");
+        setTimeout(() => navigate("/dashboard"), 1500);
+>>>>>>> 1315923189aa35117d277d46e10b2880fdf7d10b
       } else {
-        alert(data.message || "Failed to save profile");
+        setError(data.message || "Failed to save profile");
       }
     } catch (error) {
       console.error("Save profile error:", error);
-      alert("Something went wrong");
+      setError("Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
+<<<<<<< HEAD
   const selectStyle = { 
     width: "100%", 
     padding: "0.625rem 0.875rem", 
@@ -134,6 +149,9 @@ function ProfilePage() {
       </div>
     </AppLayout>
   );
+=======
+  if (authLoading || fetching) return <div style={{ padding: 20 }}>Loading profile...</div>;
+>>>>>>> 1315923189aa35117d277d46e10b2880fdf7d10b
 
   if (!user) {
     return (
@@ -147,6 +165,7 @@ function ProfilePage() {
   }
 
   return (
+<<<<<<< HEAD
     <AppLayout>
       <div style={{ maxWidth: "600px", margin: "0 auto", paddingBottom: "2rem" }}>
         
@@ -195,6 +214,36 @@ function ProfilePage() {
                 onChange={handleChange}
                 required
               />
+=======
+    <div style={{ padding: 20 }}>
+      <h2>Profile Setup</h2>
+      
+      {error && (
+        <div style={{ padding: "12px", background: "#f8d7da", color: "#721c24", borderRadius: "6px", marginBottom: "16px", fontSize: "14px", border: "1px solid #f5c6cb" }}>
+          {error}
+        </div>
+      )}
+      
+      {success && (
+        <div style={{ padding: "12px", background: "#d4edda", color: "#155724", borderRadius: "6px", marginBottom: "16px", fontSize: "14px", border: "1px solid #c3e6cb" }}>
+          {success}
+        </div>
+      )}
+
+      <form onSubmit={handleSave}>
+        <div style={{ marginBottom: 10 }}>
+          <label>Full Name</label><br />
+          <input
+            type="text"
+            name="fullName"
+            placeholder="Full Name"
+            value={formData.fullName}
+            onChange={handleChange}
+            required
+            style={{ width: "100%", padding: "8px", marginTop: "4px" }}
+          />
+        </div>
+>>>>>>> 1315923189aa35117d277d46e10b2880fdf7d10b
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <Input
