@@ -26,12 +26,9 @@ function ProfilePage() {
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
-<<<<<<< HEAD
   const [isEditing, setIsEditing] = useState(false);
-=======
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
->>>>>>> 1315923189aa35117d277d46e10b2880fdf7d10b
 
   useEffect(() => {
     async function fetchProfile() {
@@ -51,20 +48,27 @@ function ProfilePage() {
         if (response.ok) {
           const data = await response.json();
           const p = data.data;
-          // Pre-fill form with existing data
-          setFormData({
-            fullName: p.fullName || "",
-            age: p.age || "",
-            sex: p.sex || "",
-            heightCm: p.heightCm || "",
-            currentWeightKg: p.currentWeightKg || "",
-            targetWeightKg: p.targetWeightKg || "",
-            goal: p.goal || "",
-            activityLevel: p.activityLevel || "",
-            primaryDietaryStyle: p.primaryDietaryStyle || "",
-            allergiesText: p.allergiesText || "",
-            dislikedFoodsText: p.dislikedFoodsText || "",
-          });
+          if (p) {
+            // Pre-fill form with existing data
+            setFormData({
+              fullName: p.fullName || "",
+              age: p.age || "",
+              sex: p.sex || "",
+              heightCm: p.heightCm || "",
+              currentWeightKg: p.currentWeightKg || "",
+              targetWeightKg: p.targetWeightKg || "",
+              goal: p.goal || "",
+              activityLevel: p.activityLevel || "",
+              primaryDietaryStyle: p.primaryDietaryStyle || "",
+              allergiesText: p.allergiesText || "",
+              dislikedFoodsText: p.dislikedFoodsText || "",
+            });
+            
+            // If profile is completely blank, go straight to editing
+            if (!p.fullName) {
+              setIsEditing(true);
+            }
+          }
         }
       } catch (error) {
         console.error("Failed to fetch profile:", error);
@@ -105,35 +109,33 @@ function ProfilePage() {
       const data = await response.json();
 
       if (response.ok) {
-<<<<<<< HEAD
-        alert("Profile saved successfully!");
-        setIsEditing(false);
-=======
         setSuccess("Profile saved successfully!");
-        setTimeout(() => navigate("/dashboard"), 1500);
->>>>>>> 1315923189aa35117d277d46e10b2880fdf7d10b
+        setError(null);
+        setTimeout(() => {
+          setIsEditing(false);
+          setSuccess(null);
+        }, 1000);
       } else {
         setError(data.message || "Failed to save profile");
       }
     } catch (error) {
       console.error("Save profile error:", error);
-      setError("Something went wrong");
+      setError("Something went wrong. Is the backend running?");
     } finally {
       setLoading(false);
     }
   };
 
-<<<<<<< HEAD
   const selectStyle = { 
     width: "100%", 
     padding: "0.625rem 0.875rem", 
     borderRadius: "var(--radius-md)", 
     border: "1px solid var(--border)", 
-    background: "var(--bg)", 
+    background: "var(--bg-surface)", 
     color: "var(--text)", 
     fontSize: "0.875rem",
     outline: "none",
-    transition: "border-color 0.2s ease"
+    transition: "border-color var(--transition-fast)"
   };
 
   const textareaStyle = {
@@ -142,16 +144,15 @@ function ProfilePage() {
     resize: "vertical"
   };
 
-  if (authLoading || fetching) return (
-    <AppLayout>
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-        <p style={{ color: 'var(--text-muted)' }}>Loading profile...</p>
-      </div>
-    </AppLayout>
-  );
-=======
-  if (authLoading || fetching) return <div style={{ padding: 20 }}>Loading profile...</div>;
->>>>>>> 1315923189aa35117d277d46e10b2880fdf7d10b
+  if (authLoading || fetching) {
+    return (
+      <AppLayout>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+          <p style={{ color: 'var(--text-muted)' }}>Loading profile...</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   if (!user) {
     return (
@@ -164,14 +165,60 @@ function ProfilePage() {
     );
   }
 
+  // Format Helper Labels for profile display
+  const getGoalLabel = (g) => {
+    if (g === "lose") return "Lose Weight 📉";
+    if (g === "maintain") return "Maintain Weight ⚖️";
+    if (g === "gain") return "Gain Weight 📈";
+    return "Not Set";
+  };
+
+  const getActivityLabel = (act) => {
+    const list = {
+      sedentary: "Sedentary (No exercise)",
+      light: "Lightly Active (1-2 days/wk)",
+      moderate: "Moderately Active (3-5 days/wk)",
+      active: "Active (6-7 days/wk)",
+      very_active: "Very Active (Physical job)"
+    };
+    return list[act] || act || "Not Set";
+  };
+
+  const getDietLabel = (diet) => {
+    if (!diet) return "Not Set";
+    return diet.charAt(0).toUpperCase() + diet.slice(1);
+  };
+
   return (
-<<<<<<< HEAD
     <AppLayout>
       <div style={{ maxWidth: "600px", margin: "0 auto", paddingBottom: "2rem" }}>
         
+        {/* Header Button */}
+        <div style={{ marginBottom: "1.5rem" }}>
+          <button
+            onClick={() => navigate("/dashboard")}
+            style={{
+              background: "none",
+              border: "none",
+              color: "var(--primary)",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+              fontWeight: 500,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.25rem",
+              padding: 0
+            }}
+          >
+            ← Back to Dashboard
+          </button>
+        </div>
+
         {!isEditing ? (
           <Card>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2rem 1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1rem 0 2rem' }}>
+              
+              {/* Profile Avatar */}
               <div style={{ 
                 width: '120px', 
                 height: '120px', 
@@ -183,30 +230,138 @@ function ProfilePage() {
                 fontSize: '3rem',
                 color: 'var(--primary-hover)',
                 marginBottom: '1.5rem',
-                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                fontWeight: '600'
               }}>
                 {formData.fullName ? formData.fullName.charAt(0).toUpperCase() : (user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase())}
               </div>
               
-              <h2 style={{ fontSize: '1.5rem', marginBottom: '0.25rem', color: 'var(--text-h)', fontWeight: '600' }}>
-                {formData.fullName || user.name || "User Profile"}
+              <h2 style={{ fontSize: '1.75rem', marginBottom: '0.25rem', color: 'var(--text-h)', fontWeight: '600' }}>
+                {formData.fullName || "User Profile"}
               </h2>
               
               <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', fontSize: '1rem' }}>
                 {user.email}
               </p>
+
+              {/* Profile Details Grid */}
+              <div 
+                className="rb-responsive-grid"
+                style={{ 
+                  width: '100%', 
+                  marginBottom: '2rem',
+                  borderTop: '1px solid var(--border)',
+                  paddingTop: '1.5rem'
+                }}
+              >
+                
+                <div style={{ background: 'var(--bg)', padding: '0.875rem', borderRadius: 'var(--radius-md)' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Age & Sex</span>
+                  <p style={{ margin: '0.25rem 0 0', fontWeight: 500, color: 'var(--text-h)' }}>
+                    {formData.age ? `${formData.age} years` : '—'} / {formData.sex ? formData.sex.charAt(0).toUpperCase() + formData.sex.slice(1) : '—'}
+                  </p>
+                </div>
+
+                <div style={{ background: 'var(--bg)', padding: '0.875rem', borderRadius: 'var(--radius-md)' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Height</span>
+                  <p style={{ margin: '0.25rem 0 0', fontWeight: 500, color: 'var(--text-h)' }}>
+                    {formData.heightCm ? `${formData.heightCm} cm` : '—'}
+                  </p>
+                </div>
+
+                <div style={{ background: 'var(--bg)', padding: '0.875rem', borderRadius: 'var(--radius-md)' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Current Weight</span>
+                  <p style={{ margin: '0.25rem 0 0', fontWeight: 500, color: 'var(--text-h)' }}>
+                    {formData.currentWeightKg ? `${formData.currentWeightKg} kg` : '—'}
+                  </p>
+                </div>
+
+                <div style={{ background: 'var(--bg)', padding: '0.875rem', borderRadius: 'var(--radius-md)' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Target Weight</span>
+                  <p style={{ margin: '0.25rem 0 0', fontWeight: 500, color: 'var(--text-h)' }}>
+                    {formData.targetWeightKg ? `${formData.targetWeightKg} kg` : '—'}
+                  </p>
+                </div>
+
+                <div style={{ background: 'var(--bg)', padding: '0.875rem', borderRadius: 'var(--radius-md)' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Goal</span>
+                  <p style={{ margin: '0.25rem 0 0', fontWeight: 500, color: 'var(--text-h)' }}>
+                    {getGoalLabel(formData.goal)}
+                  </p>
+                </div>
+
+                <div style={{ background: 'var(--bg)', padding: '0.875rem', borderRadius: 'var(--radius-md)' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Diet Style</span>
+                  <p style={{ margin: '0.25rem 0 0', fontWeight: 500, color: 'var(--text-h)' }}>
+                    {getDietLabel(formData.primaryDietaryStyle)}
+                  </p>
+                </div>
+
+                <div style={{ background: 'var(--bg)', padding: '0.875rem', borderRadius: 'var(--radius-md)', gridColumn: 'span 2' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Activity Level</span>
+                  <p style={{ margin: '0.25rem 0 0', fontWeight: 500, color: 'var(--text-h)' }}>
+                    {getActivityLabel(formData.activityLevel)}
+                  </p>
+                </div>
+
+                <div style={{ background: 'var(--bg)', padding: '0.875rem', borderRadius: 'var(--radius-md)', gridColumn: 'span 2' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Allergies & Avoids</span>
+                  <p style={{ margin: '0.25rem 0 0', fontWeight: 500, color: formData.allergiesText ? 'var(--text-h)' : 'var(--text-muted)' }}>
+                    {formData.allergiesText || 'None recorded'}
+                  </p>
+                </div>
+
+                <div style={{ background: 'var(--bg)', padding: '0.875rem', borderRadius: 'var(--radius-md)', gridColumn: 'span 2' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Disliked Foods</span>
+                  <p style={{ margin: '0.25rem 0 0', fontWeight: 500, color: formData.dislikedFoodsText ? 'var(--text-h)' : 'var(--text-muted)' }}>
+                    {formData.dislikedFoodsText || 'None recorded'}
+                  </p>
+                </div>
+              </div>
               
-              <Button variant="primary" onClick={() => setIsEditing(true)}>
-                Edit Profile
+              <Button variant="primary" onClick={() => setIsEditing(true)} style={{ padding: '0.625rem 2rem' }}>
+                Edit Profile Settings
               </Button>
             </div>
           </Card>
         ) : (
-          <Card header={<h2 style={{ fontSize: "1.25rem", margin: 0, color: "var(--text-h)" }}>Edit Profile</h2>}>
+          <Card header={<h2 style={{ fontSize: "1.25rem", margin: 0, color: "var(--text-h)", fontWeight: 600 }}>Edit Profile Details</h2>}>
+            
+            {error && (
+              <div style={{
+                background: "rgba(239, 68, 68, 0.1)",
+                border: "1px solid #ef4444",
+                padding: "1rem",
+                borderRadius: "var(--radius-md)",
+                marginBottom: "1.25rem",
+                color: "#ef4444",
+                fontWeight: 500,
+                fontSize: "0.9375rem"
+              }}>
+                {error}
+              </div>
+            )}
+
+            {success && (
+              <div style={{
+                background: "rgba(16, 185, 129, 0.1)",
+                border: "1px solid #10b981",
+                padding: "1rem",
+                borderRadius: "var(--radius-md)",
+                marginBottom: "1.25rem",
+                color: "#10b981",
+                fontWeight: 500,
+                fontSize: "0.9375rem"
+              }}>
+                {success}
+              </div>
+            )}
+
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               
+              {/* Full Name */}
               <Input
-                label="Full Name"
+                label="Full Name *"
                 type="text"
                 name="fullName"
                 placeholder="Enter your full name"
@@ -214,49 +369,21 @@ function ProfilePage() {
                 onChange={handleChange}
                 required
               />
-=======
-    <div style={{ padding: 20 }}>
-      <h2>Profile Setup</h2>
-      
-      {error && (
-        <div style={{ padding: "12px", background: "#f8d7da", color: "#721c24", borderRadius: "6px", marginBottom: "16px", fontSize: "14px", border: "1px solid #f5c6cb" }}>
-          {error}
-        </div>
-      )}
-      
-      {success && (
-        <div style={{ padding: "12px", background: "#d4edda", color: "#155724", borderRadius: "6px", marginBottom: "16px", fontSize: "14px", border: "1px solid #c3e6cb" }}>
-          {success}
-        </div>
-      )}
 
-      <form onSubmit={handleSave}>
-        <div style={{ marginBottom: 10 }}>
-          <label>Full Name</label><br />
-          <input
-            type="text"
-            name="fullName"
-            placeholder="Full Name"
-            value={formData.fullName}
-            onChange={handleChange}
-            required
-            style={{ width: "100%", padding: "8px", marginTop: "4px" }}
-          />
-        </div>
->>>>>>> 1315923189aa35117d277d46e10b2880fdf7d10b
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              {/* Age and Sex Row */}
+              <div className="rb-responsive-grid">
                 <Input
-                  label="Age"
+                  label="Age *"
                   type="number"
                   name="age"
                   placeholder="Age"
                   value={formData.age}
                   onChange={handleChange}
+                  min="1"
                   required
                 />
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                  <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text)' }}>Sex</label>
+                <div className="rb-input-wrapper">
+                  <label className="rb-input-label">Sex *</label>
                   <select
                     name="sex"
                     value={formData.sex}
@@ -271,27 +398,31 @@ function ProfilePage() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              {/* Height and Weight Row */}
+              <div className="rb-responsive-grid">
                 <Input
-                  label="Height (cm)"
+                  label="Height (cm) *"
                   type="number"
                   name="heightCm"
                   placeholder="Height"
                   value={formData.heightCm}
                   onChange={handleChange}
+                  min="30"
                   required
                 />
                 <Input
-                  label="Current Weight (kg)"
+                  label="Current Weight (kg) *"
                   type="number"
                   name="currentWeightKg"
                   placeholder="Weight"
                   value={formData.currentWeightKg}
                   onChange={handleChange}
+                  min="10"
                   required
                 />
               </div>
 
+              {/* Target Weight */}
               <Input
                 label="Target Weight (kg)"
                 type="number"
@@ -299,10 +430,12 @@ function ProfilePage() {
                 placeholder="Target Weight"
                 value={formData.targetWeightKg}
                 onChange={handleChange}
+                min="10"
               />
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text)' }}>Goal</label>
+              {/* Goal Select */}
+              <div className="rb-input-wrapper">
+                <label className="rb-input-label">Goal *</label>
                 <select
                   name="goal"
                   value={formData.goal}
@@ -317,8 +450,9 @@ function ProfilePage() {
                 </select>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text)' }}>Activity Level</label>
+              {/* Activity Level */}
+              <div className="rb-input-wrapper">
+                <label className="rb-input-label">Activity Level *</label>
                 <select
                   name="activityLevel"
                   value={formData.activityLevel}
@@ -331,12 +465,13 @@ function ProfilePage() {
                   <option value="light">Light (1-2 days/week exercise)</option>
                   <option value="moderate">Moderate (3-5 days/week exercise)</option>
                   <option value="active">Active (6-7 days/week exercise)</option>
-                  <option value="very_active">Very Active (Professional athlete/physical job)</option>
+                  <option value="very_active">Very Active (Athlete or physical job)</option>
                 </select>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text)' }}>Dietary Style</label>
+              {/* Dietary Style */}
+              <div className="rb-input-wrapper">
+                <label className="rb-input-label">Dietary Style *</label>
                 <select
                   name="primaryDietaryStyle"
                   value={formData.primaryDietaryStyle}
@@ -355,30 +490,33 @@ function ProfilePage() {
                 </select>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text)' }}>Allergies / Foods to Avoid</label>
+              {/* Allergies */}
+              <div className="rb-input-wrapper">
+                <label className="rb-input-label">Allergies / Foods to Avoid</label>
                 <textarea
                   name="allergiesText"
-                  placeholder="e.g. Peanuts, Shellfish"
-                  rows="3"
+                  placeholder="e.g. Peanuts, Shellfish (optional)"
+                  rows="2"
                   value={formData.allergiesText}
                   onChange={handleChange}
                   style={textareaStyle}
                 />
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text)' }}>Disliked Foods</label>
+              {/* Dislikes */}
+              <div className="rb-input-wrapper">
+                <label className="rb-input-label">Disliked Foods</label>
                 <textarea
                   name="dislikedFoodsText"
-                  placeholder="e.g. Mushrooms, Olives"
-                  rows="3"
+                  placeholder="e.g. Mushrooms, Olives (optional)"
+                  rows="2"
                   value={formData.dislikedFoodsText}
                   onChange={handleChange}
                   style={textareaStyle}
                 />
               </div>
 
+              {/* Action Buttons */}
               <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
                 <Button type="button" variant="outline" fullWidth onClick={() => setIsEditing(false)}>
                   Cancel

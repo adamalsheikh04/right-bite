@@ -1,4 +1,6 @@
 const express = require("express");
+const fs = require("fs");
+const path = require("path");
 const prisma = require("../lib/prisma");
 const authMiddleware = require("../middleware/authMiddleware");
 const validateRequest = require("../middleware/validateRequest");
@@ -27,7 +29,31 @@ function getTodayRange() {
 router.post("/meals", authMiddleware, validateRequest(mealLogSchema), async (req, res, next) => {
   try {
     const userId = req.user.userId;
-    const { mealName, mealType, calories, proteinG, carbsG, fatG, description } = req.body;
+    const { mealName, mealType, calories, proteinG, carbsG, fatG, description, photoBase64 } = req.body;
+
+    let photoPath = null;
+    let source = "manual";
+
+    if (photoBase64 && photoBase64.startsWith("data:image/")) {
+      source = "photo";
+      const matches = photoBase64.match(/^data:image\/([A-Za-z+-]+);base64,(.+)$/);
+      if (matches && matches.length === 3) {
+        const ext = matches[1] === "jpeg" ? "jpg" : matches[1];
+        const data = matches[2];
+        const buffer = Buffer.from(data, "base64");
+        
+        const uploadsDir = path.join(__dirname, "../../uploads");
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+        
+        const filename = `meal_${userId}_${Date.now()}.${ext}`;
+        const filepath = path.join(uploadsDir, filename);
+        fs.writeFileSync(filepath, buffer);
+        
+        photoPath = `/uploads/${filename}`;
+      }
+    }
 
     const now = new Date();
     const meal = await prisma.mealLog.create({
@@ -40,7 +66,8 @@ router.post("/meals", authMiddleware, validateRequest(mealLogSchema), async (req
         proteinG: Math.round(proteinG),
         carbsG: Math.round(carbsG),
         fatG: Math.round(fatG),
-        source: "manual",
+        source,
+        photoPath,
         loggedDate: now,
         loggedTime: now,
       },

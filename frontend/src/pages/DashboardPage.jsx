@@ -5,73 +5,100 @@ import AppLayout from "../components/AppLayout";
 import Card from "../components/Card";
 import Button from "../components/Button";
 
-// ─── Sub-component: Progress Bar ─────────────────────────────────────────────
-function MacroBar({ label, consumed, target, unit = "g", color }) {
+// ─── Sub-component: Calorie Ring Visualizer ─────────────────────────────────
+function CalorieRing({ consumed, target }) {
   const pct = target > 0 ? Math.min((consumed / target) * 100, 100) : 0;
-  const exceeded = consumed > target && target > 0;
+  const radius = 54;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (pct / 100) * circumference;
+  const remaining = target - consumed;
+  const exceeded = remaining < 0;
 
   return (
-    <div style={{ marginBottom: 14 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", marginBottom: 4 }}>
-        <span style={{ fontWeight: 600, color: "#333" }}>{label}</span>
-        <span style={{ color: exceeded ? "#e53e3e" : "#555" }}>
-          {consumed}{unit} / {target}{unit}
-          {exceeded && <span style={{ color: "#e53e3e", fontWeight: 700 }}> (+{consumed - target}{unit})</span>}
-        </span>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+      <div style={{ position: "relative", width: 140, height: 140 }}>
+        <svg width="140" height="140" style={{ transform: "rotate(-90deg)" }}>
+          {/* Background Ring */}
+          <circle
+            cx="70"
+            cy="70"
+            r={radius}
+            fill="transparent"
+            stroke="var(--border)"
+            strokeWidth="10"
+          />
+          {/* Foreground Progress Ring with custom gradient */}
+          <circle
+            cx="70"
+            cy="70"
+            r={radius}
+            fill="transparent"
+            stroke="url(#calorieGrad)"
+            strokeWidth="10"
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            style={{ transition: "stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1)" }}
+          />
+          <defs>
+            <linearGradient id="calorieGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="var(--primary)" />
+              <stop offset="100%" stopColor="#34d399" />
+            </linearGradient>
+          </defs>
+        </svg>
+        {/* Centered content */}
+        <div style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center"
+        }}>
+          <span style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--text-h)", lineHeight: 1 }}>{consumed}</span>
+          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.25rem", fontWeight: 500 }}>of {target} kcal</span>
+        </div>
       </div>
-      <div style={{ height: 10, background: "#e2e8f0", borderRadius: 99, overflow: "hidden" }}>
-        <div
-          style={{
-            height: "100%",
-            width: `${pct}%`,
-            background: exceeded ? "#e53e3e" : color,
-            borderRadius: 99,
-            transition: "width 0.4s ease",
-          }}
-        />
+      <div style={{ marginTop: "1rem", textAlign: "center" }}>
+        <p style={{ margin: 0, fontSize: "0.9rem", fontWeight: 600, color: exceeded ? "var(--danger)" : "var(--primary-hover)" }}>
+          {exceeded 
+            ? `⚠️ Over target by ${Math.abs(remaining)} kcal` 
+            : `🔥 ${remaining} kcal remaining`}
+        </p>
       </div>
     </div>
   );
 }
 
-// ─── Sub-component: Calorie Summary Card ─────────────────────────────────────
-function CalorieSummary({ consumed, target }) {
-  const remaining = target - consumed;
-  const exceeded = remaining < 0;
+// ─── Sub-component: Macro Progress Bar ───────────────────────────────────────
+function MacroBar({ label, consumed, target, unit = "g", color, gradient }) {
+  const pct = target > 0 ? Math.min((consumed / target) * 100, 100) : 0;
+  const exceeded = consumed > target && target > 0;
 
   return (
-    <div style={{
-      background: exceeded ? "#fff5f5" : "#f0fff4",
-      border: `1px solid ${exceeded ? "#fc8181" : "#68d391"}`,
-      borderRadius: 12,
-      padding: "20px",
-      marginBottom: 20,
-      textAlign: "center",
-    }}>
-      <p style={{ margin: 0, fontSize: 13, color: "#666", marginBottom: 4 }}>
-        {exceeded ? "⚠️ Daily Calorie Target Exceeded" : "🔥 Calories Today"}
-      </p>
-      <div style={{ display: "flex", justifyContent: "space-around", alignItems: "center", flexWrap: "wrap", gap: 12, marginTop: 12 }}>
-        <div style={{ textAlign: "center" }}>
-          <p style={{ margin: 0, fontSize: 28, fontWeight: 700, color: exceeded ? "#e53e3e" : "#276749" }}>
-            {consumed}
-          </p>
-          <p style={{ margin: 0, fontSize: 12, color: "#888" }}>Consumed</p>
-        </div>
-        <div style={{ textAlign: "center" }}>
-          <p style={{ margin: 0, fontSize: 28, fontWeight: 700, color: "#4a5568" }}>
-            {target}
-          </p>
-          <p style={{ margin: 0, fontSize: 12, color: "#888" }}>Target</p>
-        </div>
-        <div style={{ textAlign: "center" }}>
-          <p style={{ margin: 0, fontSize: 28, fontWeight: 700, color: exceeded ? "#e53e3e" : "#2b6cb0" }}>
-            {exceeded ? `+${Math.abs(remaining)}` : remaining}
-          </p>
-          <p style={{ margin: 0, fontSize: 12, color: "#888" }}>
-            {exceeded ? "Over Target" : "Remaining"}
-          </p>
-        </div>
+    <div style={{ marginBottom: "1rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", marginBottom: "0.35rem" }}>
+        <span style={{ fontWeight: 600, color: "var(--text-h)" }}>{label}</span>
+        <span style={{ color: exceeded ? "var(--danger)" : "var(--text-muted)", fontWeight: 500 }}>
+          {consumed}{unit} / {target}{unit}
+          {exceeded && <span style={{ color: "var(--danger)", fontWeight: 700 }}> (+{consumed - target}{unit})</span>}
+        </span>
+      </div>
+      <div style={{ height: "8px", background: "var(--border)", borderRadius: "4px", overflow: "hidden" }}>
+        <div
+          style={{
+            height: "100%",
+            width: `${pct}%`,
+            background: exceeded ? "var(--danger)" : (gradient || color),
+            borderRadius: "4px",
+            transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        />
       </div>
     </div>
   );
@@ -80,25 +107,16 @@ function CalorieSummary({ consumed, target }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 function DashboardPage() {
   const navigate = useNavigate();
-<<<<<<< HEAD
-  // Temporarily mocked for UI preview since there's no backend running
-  const user = { name: "Demo User", email: "demo@example.com" };
-  const loading = false;
-
-  if (loading) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg)' }}>
-      <p>Loading...</p>
-    </div>
-  );
-=======
   const { user, logout, loading: authLoading } = useAuth();
 
   const [profile, setProfile] = useState(null);
   const [todaySummary, setTodaySummary] = useState({ totalCalories: 0, totalProteinG: 0, totalCarbsG: 0, totalFatG: 0 });
   const [todayMeals, setTodayMeals] = useState([]);
   const [weightLogs, setWeightLogs] = useState([]);
+  const [activePlan, setActivePlan] = useState(null);
   const [dataLoading, setDataLoading] = useState(true);
-  const [confirmDeleteId, setConfirmDeleteId] = useState(null); // inline confirm state
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [loggingPlannedId, setLoggingPlannedId] = useState(null);
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -106,10 +124,11 @@ function DashboardPage() {
       if (!token) { setDataLoading(false); return; }
 
       try {
-        const [profileRes, mealsRes, weightRes] = await Promise.all([
+        const [profileRes, mealsRes, weightRes, planRes] = await Promise.all([
           fetch("http://localhost:5000/api/profile", { headers: { Authorization: `Bearer ${token}` } }),
           fetch("http://localhost:5000/api/meals/today", { headers: { Authorization: `Bearer ${token}` } }),
           fetch("http://localhost:5000/api/weight", { headers: { Authorization: `Bearer ${token}` } }),
+          fetch("http://localhost:5000/api/meal-plan/latest", { headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
         if (profileRes.ok) {
@@ -126,6 +145,13 @@ function DashboardPage() {
         if (weightRes.ok) {
           const weightData = await weightRes.json();
           setWeightLogs(weightData.data || []);
+        }
+
+        if (planRes.ok) {
+          const planData = await planRes.json();
+          setActivePlan(planData.data);
+        } else {
+          setActivePlan(null);
         }
       } catch (error) {
         console.error("Dashboard fetch error:", error);
@@ -160,325 +186,553 @@ function DashboardPage() {
     }
   };
 
-  if (authLoading || dataLoading) return <div style={{ padding: 20 }}>Loading your dashboard...</div>;
->>>>>>> 1315923189aa35117d277d46e10b2880fdf7d10b
+  const handleLogPlannedMeal = async (plannedMealId) => {
+    setLoggingPlannedId(plannedMealId);
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`http://localhost:5000/api/meal-plan/meal/${plannedMealId}/log`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const mealsRes = await fetch("http://localhost:5000/api/meals/today", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (mealsRes.ok) {
+          const data = await mealsRes.json();
+          setTodaySummary(data.data.summary);
+          setTodayMeals(data.data.meals);
+        }
+      } else {
+        const errData = await res.json();
+        alert(errData.message || "Failed to log planned meal");
+      }
+    } catch (err) {
+      console.error("Log planned meal error:", err);
+    } finally {
+      setLoggingPlannedId(null);
+    }
+  };
+
+  if (authLoading || dataLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg)' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: "2.5rem",
+            height: "2.5rem",
+            border: "3px solid var(--border)",
+            borderTopColor: "var(--primary)",
+            borderRadius: "50%",
+            margin: "0 auto 1rem",
+            animation: "spin 1s linear infinite"
+          }}></div>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Loading your dashboard...</p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg)' }}>
-        <h2>Not Logged In</h2>
+        <h2 style={{ color: 'var(--text-h)', marginBottom: '1rem' }}>Not Logged In</h2>
         <Button onClick={() => navigate("/")} variant="primary">Go to Login</Button>
       </div>
     );
   }
 
-<<<<<<< HEAD
-  // Hardcoded values from original file (and placeholders for new visual elements)
-  const caloriesTarget = 2000;
-  const caloriesConsumed = 1200;
-  const caloriesRemaining = 800;
-  const progressPercentage = Math.min(100, Math.round((caloriesConsumed / caloriesTarget) * 100));
-
-  // Placeholder Macro data for visuals
-  const macros = {
-    protein: { current: 80, target: 150 },
-    carbs: { current: 120, target: 200 },
-    fat: { current: 40, target: 65 }
-  };
-
-  const calculateMacroWidth = (current, target) => `${Math.min(100, Math.round((current / target) * 100))}%`;
-
-  return (
-    <AppLayout>
-      <div style={{ marginBottom: "2rem" }}>
-        <h1 style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
-          Welcome back, {user.name || user.email.split('@')[0]}! 👋
-        </h1>
-        <p style={{ color: "var(--text-muted)", fontSize: "1rem" }}>
-          Here is your daily nutrition summary. Keep up the great work!
-        </p>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
-
-        {/* Main Calorie Summary Card */}
-        <Card style={{ gridColumn: "1 / -1" }}>
-          <h2 style={{ fontSize: "1.25rem", marginBottom: "1.5rem", color: "var(--text-h)" }}>Today's Overview</h2>
-
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "2rem", alignItems: "center" }}>
-
-            <div style={{ flex: "1 1 200px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                <span style={{ fontWeight: 600 }}>Calories</span>
-                <span style={{ color: "var(--text-muted)" }}>{progressPercentage}%</span>
-              </div>
-              <div style={{ height: "12px", background: "var(--border)", borderRadius: "6px", overflow: "hidden", marginBottom: "1rem" }}>
-                <div style={{ height: "100%", width: `${progressPercentage}%`, background: "var(--primary)", transition: "width 0.5s ease" }} />
-              </div>
-
-              <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-muted)", fontSize: "0.875rem" }}>
-                <span>{caloriesConsumed} consumed</span>
-                <span>{caloriesTarget} goal</span>
-              </div>
-            </div>
-
-            <div style={{ display: "flex", gap: "1rem", flex: "1 1 300px" }}>
-              <div style={{ flex: 1, padding: "1rem", background: "var(--primary-light)", borderRadius: "var(--radius-lg)", textAlign: "center" }}>
-                <p style={{ fontSize: "0.875rem", color: "var(--primary-hover)", margin: 0, fontWeight: 500 }}>Consumed</p>
-                <p style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--primary-hover)", margin: "0.25rem 0 0" }}>{caloriesConsumed}</p>
-              </div>
-              <div style={{ flex: 1, padding: "1rem", background: "var(--bg)", borderRadius: "var(--radius-lg)", border: "1px solid var(--border)", textAlign: "center" }}>
-                <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", margin: 0, fontWeight: 500 }}>Remaining</p>
-                <p style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--text-h)", margin: "0.25rem 0 0" }}>{caloriesRemaining}</p>
-              </div>
-            </div>
-
-          </div>
-        </Card>
-
-        {/* Macros Card */}
-        <Card header={<h3 style={{ fontSize: "1.125rem", margin: 0, color: "var(--text-h)" }}>Macronutrients</h3>}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.875rem", marginBottom: "0.25rem" }}>
-                <span style={{ fontWeight: 500 }}>Protein</span>
-                <span style={{ color: "var(--text-muted)" }}>{macros.protein.current}g / {macros.protein.target}g</span>
-              </div>
-              <div style={{ height: "8px", background: "var(--border)", borderRadius: "4px", overflow: "hidden" }}>
-                <div style={{ height: "100%", width: calculateMacroWidth(macros.protein.current, macros.protein.target), background: "#3b82f6" }} />
-              </div>
-            </div>
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.875rem", marginBottom: "0.25rem" }}>
-                <span style={{ fontWeight: 500 }}>Carbs</span>
-                <span style={{ color: "var(--text-muted)" }}>{macros.carbs.current}g / {macros.carbs.target}g</span>
-              </div>
-              <div style={{ height: "8px", background: "var(--border)", borderRadius: "4px", overflow: "hidden" }}>
-                <div style={{ height: "100%", width: calculateMacroWidth(macros.carbs.current, macros.carbs.target), background: "#f59e0b" }} />
-              </div>
-            </div>
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.875rem", marginBottom: "0.25rem" }}>
-                <span style={{ fontWeight: 500 }}>Fat</span>
-                <span style={{ color: "var(--text-muted)" }}>{macros.fat.current}g / {macros.fat.target}g</span>
-              </div>
-              <div style={{ height: "8px", background: "var(--border)", borderRadius: "4px", overflow: "hidden" }}>
-                <div style={{ height: "100%", width: calculateMacroWidth(macros.fat.current, macros.fat.target), background: "#ef4444" }} />
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Quick Actions Card */}
-        <Card header={<h3 style={{ fontSize: "1.125rem", margin: 0, color: "var(--text-h)" }}>Quick Actions</h3>}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            <Button variant="primary" fullWidth onClick={() => navigate("/log-meal")}>
-              🍽️ Log a Meal
-            </Button>
-            <Button variant="outline" fullWidth onClick={() => navigate("/meal-wizard")}>
-              ✨ Generate Meal Plan
-            </Button>
-            <Button variant="outline" fullWidth onClick={() => navigate("/groceries")}>
-              🛒 View Groceries
-            </Button>
-            <Button variant="outline" fullWidth onClick={() => navigate("/progress")}>
-              📈 View Progress
-            </Button>
-          </div>
-        </Card>
-
-      </div>
-    </AppLayout>
-=======
-  // If user hasn't set profile, show a prompt instead of broken data
   if (!profile) {
     return (
-      <div style={{ padding: 20, maxWidth: 480, margin: "0 auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <span style={{ fontSize: 14, color: "#555" }}>Logged in as <strong>{user.email}</strong></span>
-          <button onClick={logout} style={{ background: "#e53e3e", color: "white", border: "none", padding: "6px 12px", borderRadius: 6, cursor: "pointer" }}>Logout</button>
+      <AppLayout>
+        <div style={{ maxWidth: 480, margin: "3rem auto", padding: "1rem" }}>
+          <Card style={{ textAlign: "center", padding: "2.5rem 2rem", boxShadow: "var(--shadow-lg)" }}>
+            <div style={{ fontSize: "3.5rem", marginBottom: "1rem" }}>🙋</div>
+            <h3 style={{ margin: "0 0 0.5rem", fontSize: "1.5rem", color: "var(--text-h)" }}>Profile Not Set Up</h3>
+            <p style={{ color: "var(--text-muted)", marginBottom: "2rem", fontSize: "0.95rem", lineHeight: 1.5 }}>
+              Complete your dynamic physical profile so we can calculate your personalized daily calorie and macronutrient targets.
+            </p>
+            <Button
+              onClick={() => navigate("/settings")}
+              variant="primary"
+              fullWidth
+              size="lg"
+            >
+              Complete Profile Setup
+            </Button>
+          </Card>
         </div>
-        <div style={{ background: "#fffbeb", border: "1px solid #f6ad55", borderRadius: 12, padding: 24, textAlign: "center" }}>
-          <h3 style={{ margin: "0 0 8px" }}>🙋 Profile Not Set Up</h3>
-          <p style={{ color: "#666", marginBottom: 16 }}>Complete your profile so we can calculate your daily targets.</p>
-          <button
-            onClick={() => navigate("/profile")}
-            style={{ background: "#f6ad55", color: "white", border: "none", padding: "12px 24px", borderRadius: 8, fontSize: 15, cursor: "pointer", fontWeight: 600 }}
-          >
-            Complete Profile
-          </button>
-        </div>
-      </div>
+      </AppLayout>
     );
   }
 
   const targets = {
-    calories: profile.targetCalories || 0,
-    proteinG: profile.targetProteinG || 0,
-    carbsG: profile.targetCarbsG || 0,
-    fatG: profile.targetFatG || 0,
+    calories: profile.targetCalories || 2000,
+    proteinG: profile.targetProteinG || 150,
+    carbsG: profile.targetCarbsG || 200,
+    fatG: profile.targetFatG || 65,
   };
 
+  const caloriesConsumed = todaySummary.totalCalories || 0;
+  const caloriesTarget = targets.calories;
+
+  // Helper to resolve standard icons/emojis for meals
+  const getMealTypeEmoji = (type) => {
+    switch (type?.toLowerCase()) {
+      case "breakfast": return "🥞";
+      case "lunch": return "🥗";
+      case "dinner": return "🍛";
+      default: return "🍏";
+    }
+  };
+
+  const getTodayPlannedMeals = () => {
+    if (!activePlan || !activePlan.days) return [];
+    const todayName = new Date().toLocaleDateString("en-US", { weekday: "long" });
+    const todayDay = activePlan.days.find(
+      (d) => d.dayName.toLowerCase() === todayName.toLowerCase()
+    );
+    return todayDay ? todayDay.meals : [];
+  };
+
+  const todayPlannedMeals = getTodayPlannedMeals();
+
+  const isAlreadyLogged = (plannedMealName) => {
+    return todayMeals.some(
+      (logged) => logged.mealName.toLowerCase().trim() === plannedMealName.toLowerCase().trim()
+    );
+  };
+
+  const actionItems = [
+    { path: "/weekly-plan", label: "View Weekly Plan", desc: "Your tailored menu", icon: "📅", iconBg: "var(--primary-light)" },
+    { path: "/meal-wizard", label: "Meal Wizard", desc: "Generate a new plan", icon: "✨", iconBg: "#dbeafe" },
+    { path: "/groceries", label: "Grocery List", desc: "Interactive list", icon: "🛒", iconBg: "#fef3c7" },
+    { path: "/progress", label: "Weight Progress", desc: "Log physical metrics", icon: "📈", iconBg: "#f3e8ff" },
+    { path: "/settings", label: "Profile & Settings", desc: "Adjust targets & preferences", icon: "⚙️", iconBg: "#ffe4e6" },
+    { path: "/plan-history", label: "Plan History", desc: "Review past plans", icon: "📜", iconBg: "var(--border)" }
+  ];
+
   return (
-    <div style={{ maxWidth: 480, margin: "0 auto", padding: "16px" }}>
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+    <AppLayout>
+      {/* Welcome Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2.5rem", flexWrap: "wrap", gap: "1rem" }}>
         <div>
-          <h2 style={{ margin: 0 }}>Dashboard</h2>
-          <p style={{ margin: 0, fontSize: 13, color: "#666" }}>
-            Welcome, {profile.fullName || user.email}
+          <h1 style={{ fontSize: "2rem", marginBottom: "0.35rem", color: "var(--text-h)" }}>
+            Welcome back, {profile.fullName || user.email.split('@')[0]}! 👋
+          </h1>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", margin: 0 }}>
+            Here is your personalized daily nutrition overview. You're doing great!
           </p>
         </div>
-        <button
-          onClick={logout}
-          style={{ background: "#e53e3e", color: "white", border: "none", padding: "6px 12px", borderRadius: 6, cursor: "pointer", fontSize: 13 }}
-        >
-          Logout
-        </button>
       </div>
 
-      {/* Calorie Summary Card */}
-      <CalorieSummary
-        consumed={todaySummary.totalCalories}
-        target={targets.calories}
-      />
+      {/* Main Grid: 2 Columns on Desktop */}
+      <div className="rb-dashboard-layout">
+        
+        {/* LEFT COLUMN: Nutrition progress widgets */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          
+          {/* Daily Nutrition Overview Card */}
+          <Card header={
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+              <h3 style={{ fontSize: "1.125rem", margin: 0, color: "var(--text-h)" }}>🎯 Daily Overview</h3>
+              <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Today</span>
+            </div>
+          }>
+            <div style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "2rem",
+              alignItems: "center",
+              justifyContent: "space-around",
+              padding: "0.5rem 0"
+            }}>
+              
+              {/* Radial Calorie Visualizer */}
+              <div style={{ flex: "1 1 180px", display: "flex", justifyContent: "center" }}>
+                <CalorieRing consumed={caloriesConsumed} target={caloriesTarget} />
+              </div>
 
-      {/* Macro Progress Bars */}
-      <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, marginBottom: 20 }}>
-        <h4 style={{ margin: "0 0 14px", fontSize: 14, color: "#555", textTransform: "uppercase", letterSpacing: 0.5 }}>Macros</h4>
-        <MacroBar label="Protein" consumed={todaySummary.totalProteinG} target={targets.proteinG} color="#4299e1" />
-        <MacroBar label="Carbs" consumed={todaySummary.totalCarbsG} target={targets.carbsG} color="#ed8936" />
-        <MacroBar label="Fat" consumed={todaySummary.totalFatG} target={targets.fatG} color="#9f7aea" />
-      </div>
+              {/* Macro Progress Indicators */}
+              <div style={{ flex: "2 1 240px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <h4 style={{ fontSize: "0.95rem", color: "var(--text-h)", marginBottom: "1.25rem", borderBottom: "1px solid var(--border)", paddingBottom: "0.5rem" }}>
+                  Macronutrient Progress
+                </h4>
+                
+                <MacroBar
+                  label="Protein"
+                  consumed={todaySummary.totalProteinG}
+                  target={targets.proteinG}
+                  color="#3b82f6"
+                  gradient="linear-gradient(90deg, #3b82f6, #60a5fa)"
+                />
+                
+                <MacroBar
+                  label="Carbohydrates"
+                  consumed={todaySummary.totalCarbsG}
+                  target={targets.carbsG}
+                  color="#f59e0b"
+                  gradient="linear-gradient(90deg, #f59e0b, #fbbf24)"
+                />
+                
+                <MacroBar
+                  label="Fats"
+                  consumed={todaySummary.totalFatG}
+                  target={targets.fatG}
+                  color="#ef4444"
+                  gradient="linear-gradient(90deg, #ef4444, #f87171)"
+                />
+              </div>
 
-      {/* Weight Widget */}
-      <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, marginBottom: 20 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <h4 style={{ margin: 0, fontSize: 14, color: "#555", textTransform: "uppercase", letterSpacing: 0.5 }}>⚖️ Weight</h4>
-          <button
-            onClick={() => navigate("/progress")}
-            style={{ background: "none", border: "1px solid #4299e1", color: "#4299e1", padding: "4px 12px", borderRadius: 20, fontSize: 12, cursor: "pointer", fontWeight: 600 }}
-          >
-            Update Weight
-          </button>
+            </div>
+          </Card>
+
+          {/* NEW: Today's Planned Menu Card */}
+          <Card header={
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+              <h3 style={{ fontSize: "1.125rem", margin: 0, color: "var(--text-h)" }}>🗓️ Today's Planned Menu</h3>
+              <Button variant="outline" size="sm" onClick={() => navigate("/weekly-plan")}>
+                Full Week
+              </Button>
+            </div>
+          }>
+            {todayPlannedMeals.length === 0 ? (
+              <div style={{
+                textAlign: "center",
+                padding: "2rem 1rem",
+                color: "var(--text-muted)",
+                border: "2px dashed var(--border)",
+                borderRadius: "var(--radius-lg)"
+              }}>
+                <div style={{ fontSize: "1.75rem", marginBottom: "0.5rem" }}>📅</div>
+                <p style={{ margin: 0, fontWeight: 500 }}>No active plan generated for today.</p>
+                <p style={{ margin: "0.25rem 0 0", fontSize: "0.85rem" }}>Generate a custom nutrition plan in the Meal Wizard.</p>
+                <Button 
+                  variant="primary" 
+                  size="sm" 
+                  style={{ marginTop: "1rem" }}
+                  onClick={() => navigate("/meal-wizard")}
+                >
+                  Go to Meal Wizard
+                </Button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                {todayPlannedMeals.map((planned) => {
+                  const logged = isAlreadyLogged(planned.mealName);
+                  return (
+                    <div
+                      key={planned.id}
+                      style={{
+                        background: "var(--bg)",
+                        border: "1px solid var(--border)",
+                        borderRadius: "var(--radius-lg)",
+                        padding: "0.75rem 1rem",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        boxShadow: "var(--shadow-sm)"
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", minWidth: 0, flex: 1, marginRight: "0.5rem" }}>
+                        <div style={{ fontSize: "1.5rem", marginRight: "0.75rem", flexShrink: 0 }}>
+                          {getMealTypeEmoji(planned.mealType)}
+                        </div>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ display: "flex", alignItems: "baseline", gap: "0.35rem", flexWrap: "wrap" }}>
+                            <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--text-h)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {planned.mealName}
+                            </span>
+                            <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", textTransform: "capitalize", fontWeight: 600 }}>
+                              ({planned.mealType})
+                            </span>
+                          </div>
+                          <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                            🥞 {planned.calories} kcal · P:{planned.proteinG}g C:{planned.carbsG}g F:{planned.fatG}g
+                          </p>
+                        </div>
+                      </div>
+
+                      {logged ? (
+                        <div style={{
+                          color: "var(--primary-hover)",
+                          fontWeight: 700,
+                          fontSize: "0.8rem",
+                          backgroundColor: "rgba(16, 185, 129, 0.1)",
+                          padding: "0.35rem 0.65rem",
+                          borderRadius: "var(--radius-md)",
+                          flexShrink: 0
+                        }}>
+                          ✓ Logged
+                        </div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={loggingPlannedId === planned.id}
+                          onClick={() => handleLogPlannedMeal(planned.id)}
+                          style={{
+                            padding: "0.35rem 0.75rem",
+                            fontSize: "0.8rem",
+                            flexShrink: 0,
+                            borderRadius: "var(--radius-md)"
+                          }}
+                        >
+                          {loggingPlannedId === planned.id ? "..." : "⚡ Log"}
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+
+          {/* Weight Widget Card */}
+          <Card header={
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+              <h3 style={{ fontSize: "1.125rem", margin: 0, color: "var(--text-h)" }}>⚖️ Weight Progress</h3>
+              <Button variant="outline" size="sm" onClick={() => navigate("/progress")}>
+                Update
+              </Button>
+            </div>
+          }>
+            {weightLogs.length === 0 ? (
+              <div style={{ padding: "0.5rem 0", color: "var(--text-muted)", fontSize: "0.9rem" }}>
+                No weight logged yet. <span style={{ textDecoration: "underline", cursor: "pointer", color: "var(--primary)", fontWeight: 500 }} onClick={() => navigate("/progress")}>Log your first weight entry →</span>
+              </div>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.5rem 0" }}>
+                <div>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: "0.35rem" }}>
+                    <span style={{ fontSize: "2.25rem", fontWeight: 800, color: "var(--text-h)", letterSpacing: "-0.02em" }}>
+                      {weightLogs[0].weightKg}
+                    </span>
+                    <span style={{ fontSize: "1.1rem", color: "var(--text-muted)", fontWeight: 500 }}>kg</span>
+                  </div>
+                  <p style={{ margin: "0.25rem 0 0", fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                    Last logged on {new Date(weightLogs[0].createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                  </p>
+                </div>
+
+                {weightLogs.length >= 2 && (() => {
+                  const delta = +(weightLogs[0].weightKg - weightLogs[1].weightKg).toFixed(1);
+                  const positive = delta > 0;
+                  return (
+                    <div style={{
+                      backgroundColor: positive ? "rgba(239, 68, 68, 0.1)" : "rgba(16, 185, 129, 0.1)",
+                      color: positive ? "var(--danger)" : "var(--primary-hover)",
+                      padding: "0.5rem 0.85rem",
+                      borderRadius: "var(--radius-md)",
+                      fontWeight: 700,
+                      fontSize: "0.9rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.25rem"
+                    }}>
+                      {positive ? `▲ +${delta}` : `▼ ${delta}`} kg
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+          </Card>
+
         </div>
-        {weightLogs.length === 0 ? (
-          <p style={{ margin: 0, fontSize: 13, color: "#a0aec0" }}>No weight logged yet. <span style={{ textDecoration: "underline", cursor: "pointer", color: "#4299e1" }} onClick={() => navigate("/progress")}>Log now →</span></p>
-        ) : (
-          <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-            <p style={{ margin: 0, fontSize: 26, fontWeight: 700, color: "#2d3748" }}>
-              {weightLogs[0].weightKg} <span style={{ fontSize: 14, fontWeight: 500, color: "#888" }}>kg</span>
-            </p>
-            {weightLogs.length >= 2 && (() => {
-              const delta = +(weightLogs[0].weightKg - weightLogs[1].weightKg).toFixed(1);
-              const positive = delta > 0;
-              return (
-                <p style={{ margin: 0, fontSize: 14, color: positive ? "#e53e3e" : "#276749", fontWeight: 600 }}>
-                  {positive ? `▲ +${delta}` : `▼ ${delta}`} kg since last
-                </p>
-              );
-            })()}
-          </div>
-        )}
-      </div>
 
-      {/* Today's Meals */}
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <h4 style={{ margin: 0, fontSize: 14, color: "#555", textTransform: "uppercase", letterSpacing: 0.5 }}>Today's Meals</h4>
-          <button
-            onClick={() => navigate("/log-meal")}
-            style={{ background: "#38a169", color: "white", border: "none", padding: "6px 14px", borderRadius: 20, fontSize: 13, cursor: "pointer", fontWeight: 600 }}
-          >
-            + Log Meal
-          </button>
-        </div>
+        {/* RIGHT COLUMN: Interactive lists & navigation */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          
+          {/* Today's Meals feed */}
+          <Card header={
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+              <h3 style={{ fontSize: "1.125rem", margin: 0, color: "var(--text-h)" }}>🍽️ Today's Meals</h3>
+              <Button variant="primary" size="sm" onClick={() => navigate("/log-meal")}>
+                + Log Meal
+              </Button>
+            </div>
+          }>
+            {todayMeals.length === 0 ? (
+              <div style={{
+                textAlign: "center",
+                padding: "2.5rem 1rem",
+                color: "var(--text-muted)",
+                border: "2px dashed var(--border)",
+                borderRadius: "var(--radius-lg)",
+                background: "rgba(0, 0, 0, 0.01)"
+              }}>
+                <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>🥪</div>
+                <p style={{ margin: 0, fontWeight: 500 }}>No meals logged yet today.</p>
+                <p style={{ margin: "0.25rem 0 0", fontSize: "0.85rem" }}>Tap "+ Log Meal" to visually record your diet.</p>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+                {todayMeals.map((meal) => (
+                  <div
+                    key={meal.id}
+                    style={{
+                      background: "var(--bg)",
+                      border: `1px solid ${confirmDeleteId === meal.id ? "var(--danger)" : "var(--border)"}`,
+                      borderRadius: "var(--radius-lg)",
+                      padding: "0.875rem 1rem",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      boxShadow: "var(--shadow-sm)",
+                      transition: "border-color 0.2s ease"
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", flex: 1, minWidth: 0 }}>
+                      
+                      {/* Image Thumbnail or Backup Emoji */}
+                      {meal.photoPath ? (
+                        <img 
+                          src={`http://localhost:5000${meal.photoPath}`} 
+                          alt={meal.mealName}
+                          style={{
+                            width: "3rem",
+                            height: "3rem",
+                            borderRadius: "var(--radius-md)",
+                            objectFit: "cover",
+                            marginRight: "0.875rem",
+                            border: "1.5px solid var(--border)",
+                            boxShadow: "var(--shadow-sm)"
+                          }}
+                        />
+                      ) : (
+                        <div style={{
+                          width: "3rem",
+                          height: "3rem",
+                          borderRadius: "var(--radius-md)",
+                          backgroundColor: "var(--bg-surface)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "1.5rem",
+                          marginRight: "0.875rem",
+                          border: "1px solid var(--border)"
+                        }}>
+                          {getMealTypeEmoji(meal.mealType)}
+                        </div>
+                      )}
 
-        {todayMeals.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "24px 0", color: "#a0aec0", border: "1px dashed #cbd5e0", borderRadius: 10 }}>
-            <p style={{ margin: 0 }}>No meals logged yet today.</p>
-            <p style={{ margin: "4px 0 0", fontSize: 13 }}>Tap "Log Meal" to get started.</p>
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {todayMeals.map((meal) => (
-              <div
-                key={meal.id}
-                style={{
-                  background: "white",
-                  border: `1px solid ${confirmDeleteId === meal.id ? "#fc8181" : "#e2e8f0"}`,
-                  borderRadius: 10,
-                  padding: "12px 14px",
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div>
-                    <p style={{ margin: 0, fontWeight: 600, fontSize: 15 }}>{meal.mealName}</p>
-                    <p style={{ margin: "2px 0 0", fontSize: 12, color: "#888" }}>
-                      {meal.mealType} · {meal.calories} kcal · P:{meal.proteinG}g C:{meal.carbsG}g F:{meal.fatG}g
+                      <div style={{ flex: 1, minWidth: 0, paddingRight: "0.5rem" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.25rem" }}>
+                          <p style={{ margin: 0, fontWeight: 700, fontSize: "0.95rem", color: "var(--text-h)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {meal.mealName}
+                          </p>
+                          <span className={`rb-meal-badge rb-meal-badge-${meal.mealType?.toLowerCase()}`}>
+                            {meal.mealType}
+                          </span>
+                        </div>
+                        <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 500 }}>
+                          🔥 {meal.calories} kcal · P:{meal.proteinG}g C:{meal.carbsG}g F:{meal.fatG}g
+                        </p>
+                      </div>
+
+                    </div>
+
+                    {/* Delete Controls */}
+                    {confirmDeleteId !== meal.id ? (
+                      <button
+                        id={`delete-meal-${meal.id}`}
+                        onClick={() => setConfirmDeleteId(meal.id)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "var(--text-muted)",
+                          cursor: "pointer",
+                          fontSize: "1.35rem",
+                          padding: "0.25rem",
+                          display: "flex",
+                          alignItems: "center",
+                          transition: "color var(--transition-fast)"
+                        }}
+                        className="rb-logout-text"
+                        title="Delete meal"
+                      >
+                        ✕
+                      </button>
+                    ) : (
+                      <div style={{ display: "flex", gap: "0.35rem", flexShrink: 0 }}>
+                        <Button
+                          id={`cancel-delete-${meal.id}`}
+                          onClick={() => setConfirmDeleteId(null)}
+                          variant="outline"
+                          size="sm"
+                          style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          id={`confirm-delete-${meal.id}`}
+                          onClick={() => handleDeleteMeal(meal.id)}
+                          variant="danger"
+                          size="sm"
+                          style={{ padding: "0.25rem 0.5rem", fontSize: "0.75rem" }}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          {/* Dynamic Quick Navigation Grid */}
+          <Card header={<h3 style={{ fontSize: "1.125rem", margin: 0, color: "var(--text-h)" }}>Quick Actions</h3>}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.75rem" }}>
+              {actionItems.map((action) => (
+                <div
+                  key={action.path}
+                  onClick={() => navigate(action.path)}
+                  style={{
+                    background: "var(--bg-surface)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "var(--radius-lg)",
+                    padding: "0.85rem 1rem",
+                    cursor: "pointer",
+                    transition: "all var(--transition-fast)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem"
+                  }}
+                  className="rb-action-tile"
+                >
+                  <div style={{
+                    width: "2.25rem",
+                    height: "2.25rem",
+                    borderRadius: "var(--radius-md)",
+                    backgroundColor: action.iconBg,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "1.25rem",
+                    flexShrink: 0
+                  }}>
+                    {action.icon}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h4 style={{ margin: 0, fontSize: "0.85rem", fontWeight: 700, color: "var(--text-h)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {action.label}
+                    </h4>
+                    <p style={{ margin: "0.1rem 0 0", fontSize: "0.7rem", color: "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {action.desc}
                     </p>
                   </div>
-                  {confirmDeleteId !== meal.id ? (
-                    <button
-                      id={`delete-meal-${meal.id}`}
-                      onClick={() => setConfirmDeleteId(meal.id)}
-                      style={{ background: "none", border: "none", color: "#a0aec0", cursor: "pointer", fontSize: 20, padding: "0 0 0 8px" }}
-                      title="Delete meal"
-                    >
-                      ×
-                    </button>
-                  ) : (
-                    <div style={{ display: "flex", gap: 6 }}>
-                      <button
-                        id={`cancel-delete-${meal.id}`}
-                        onClick={() => setConfirmDeleteId(null)}
-                        style={{ fontSize: 12, padding: "4px 8px", borderRadius: 6, border: "1px solid #cbd5e0", background: "white", cursor: "pointer" }}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        id={`confirm-delete-${meal.id}`}
-                        onClick={() => handleDeleteMeal(meal.id)}
-                        style={{ fontSize: 12, padding: "4px 8px", borderRadius: 6, border: "none", background: "#e53e3e", color: "white", cursor: "pointer" }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          </Card>
 
-      {/* Navigation */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <button onClick={() => navigate("/weekly-plan")} style={navBtnStyle}>View Current Plan</button>
-        <button onClick={() => navigate("/plan-history")} style={navBtnStyle}>View Plan History</button>
-        <button onClick={() => navigate("/meal-wizard")} style={navBtnStyle}>Generate New Plan</button>
-        <button onClick={() => navigate("/groceries")} style={navBtnStyle}>View Groceries</button>
-        <button onClick={() => navigate("/progress")} style={navBtnStyle}>View Progress</button>
-        <button onClick={() => navigate("/profile")} style={{ ...navBtnStyle, background: "#2b6cb0", color: "white" }}>
-          My Profile
-        </button>
+        </div>
+
       </div>
-    </div>
->>>>>>> 1315923189aa35117d277d46e10b2880fdf7d10b
+    </AppLayout>
   );
 }
-
-const navBtnStyle = {
-  padding: "12px",
-  background: "#edf2f7",
-  color: "#2d3748",
-  border: "none",
-  borderRadius: 8,
-  fontSize: 14,
-  cursor: "pointer",
-  fontWeight: 500,
-  textAlign: "left",
-  paddingLeft: 16,
-};
 
 export default DashboardPage;

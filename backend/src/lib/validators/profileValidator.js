@@ -21,6 +21,7 @@ const profileUpsertSchema = z.object({
   primaryDietaryStyle: z.string().trim().default("none"),
   allergiesText: z.string().trim().default(""),
   dislikedFoodsText: z.string().trim().default(""),
+  photoBase64: z.string().trim().optional().nullable(),
 });
 
 module.exports = {

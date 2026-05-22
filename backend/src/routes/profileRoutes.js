@@ -45,7 +45,31 @@ router.put("/profile", authMiddleware, validateRequest(profileUpsertSchema), asy
       primaryDietaryStyle,
       allergiesText,
       dislikedFoodsText,
+      photoBase64,
     } = req.body;
+
+    let photoPath = undefined;
+    if (photoBase64) {
+      const path = require("path");
+      const fs = require("fs");
+      const matches = photoBase64.match(/^data:image\/([A-Za-z-+\/]+);base64,(.+)$/);
+      if (matches && matches.length === 3) {
+        const ext = matches[1] === "jpeg" ? "jpg" : matches[1];
+        const data = matches[2];
+        const buffer = Buffer.from(data, "base64");
+        
+        const uploadsDir = path.join(__dirname, "../../uploads");
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+        
+        const filename = `profile_${userId}_${Date.now()}.${ext}`;
+        const filepath = path.join(uploadsDir, filename);
+        fs.writeFileSync(filepath, buffer);
+        
+        photoPath = `/uploads/${filename}`;
+      }
+    }
 
     // Calculate nutritional targets from validated data
     const targets = calculateTargets({ age, sex, heightCm, currentWeightKg, goal, activityLevel });
@@ -64,6 +88,10 @@ router.put("/profile", authMiddleware, validateRequest(profileUpsertSchema), asy
       dislikedFoodsText: dislikedFoodsText || "",
       ...targets,
     };
+
+    if (photoPath !== undefined) {
+      profileData.photoPath = photoPath;
+    }
 
     const profile = await prisma.profile.upsert({
       where: { userId },

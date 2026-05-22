@@ -14,6 +14,7 @@ const mealLogSchema = z.object({
   fatG: z.coerce.number().min(0, "Fat cannot be negative"),
   description: z.string().trim().optional().default(""),
   loggedDate: z.string().optional(), // In Phase 1 we use Date.now() in route, but schema allows it
+  photoBase64: z.string().optional(),
 });
 
 module.exports = {

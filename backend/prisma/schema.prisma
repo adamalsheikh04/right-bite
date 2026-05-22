@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -40,6 +41,7 @@ model Profile {
   targetCarbsG         Int
   targetFatG           Int
   manualOverride       Boolean  @default(false)
+  photoPath            String?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 

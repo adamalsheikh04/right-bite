@@ -5,6 +5,7 @@ import AuthLayout from "../components/AuthLayout";
 import Card from "../components/Card";
 import Input from "../components/Input";
 import Button from "../components/Button";
+import logo from "../assets/logo.png";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -46,11 +47,20 @@ function LoginPage() {
   }
 
   const cardHeader = (
-    <div style={{ textAlign: "center", paddingTop: "0.5rem" }}>
-      <div style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>🌿</div>
-      <h1 style={{ fontSize: "1.5rem", color: "var(--text-h)", marginBottom: "0.5rem" }}>
-        Welcome back
-      </h1>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", paddingTop: "0.5rem" }}>
+      <img 
+        src={logo} 
+        alt="Right Bite Logo" 
+        style={{ 
+          width: "5.5rem", 
+          height: "5.5rem", 
+          objectFit: "contain", 
+          marginBottom: "0.75rem"
+        }} 
+      />
+      <h2 style={{ margin: "0 0 0.5rem", fontSize: "1.75rem", fontWeight: 800, color: "var(--primary)", letterSpacing: "-0.03em" }}>
+        Right<span style={{ color: "var(--text-h)" }}>Bite</span>
+      </h2>
       <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", margin: 0 }}>
         Log in to continue your nutrition journey
       </p>

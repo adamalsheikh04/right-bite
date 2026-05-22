@@ -1,74 +1,10 @@
-<<<<<<< HEAD
-import { useState } from "react";
-import AppLayout from "../components/AppLayout";
-import Card from "../components/Card";
-
-function ProgressPage() {
-  const [historyRecords] = useState([
-    { id: 1, date: "2023-10-05", weight: "74.8 kg", calories: 2200, goalMet: false },
-    { id: 2, date: "2023-10-04", weight: "75.0 kg", calories: 2000, goalMet: true },
-    { id: 3, date: "2023-10-03", weight: "75.1 kg", calories: 1800, goalMet: true },
-    { id: 4, date: "2023-10-02", weight: "75.3 kg", calories: 2100, goalMet: false },
-    { id: 5, date: "2023-10-01", weight: "75.5 kg", calories: 1950, goalMet: true },
-  ]);
-
-  return (
-    <AppLayout>
-      <div style={{ maxWidth: "800px", margin: "0 auto", paddingBottom: "2rem" }}>
-        <div style={{ marginBottom: "2rem" }}>
-          <h1 style={{ fontSize: "2rem", marginBottom: "0.5rem", color: "var(--text-h)" }}>
-            History & Progress
-          </h1>
-          <p style={{ color: "var(--text-muted)", fontSize: "1rem" }}>
-            Review your past records and track your journey over time.
-          </p>
-        </div>
-
-        <Card style={{ padding: "0" }}>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
-              <thead>
-                <tr style={{ borderBottom: "1px solid var(--border)", backgroundColor: "rgba(0,0,0,0.02)" }}>
-                  <th style={{ padding: "1.25rem 1.5rem", fontWeight: 600, color: "var(--text-muted)", fontSize: "0.875rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Date</th>
-                  <th style={{ padding: "1.25rem 1.5rem", fontWeight: 600, color: "var(--text-muted)", fontSize: "0.875rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Weight</th>
-                  <th style={{ padding: "1.25rem 1.5rem", fontWeight: 600, color: "var(--text-muted)", fontSize: "0.875rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Calories</th>
-                  <th style={{ padding: "1.25rem 1.5rem", fontWeight: 600, color: "var(--text-muted)", fontSize: "0.875rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {historyRecords.map((record, index) => (
-                  <tr key={record.id} style={{ borderBottom: index === historyRecords.length - 1 ? "none" : "1px solid var(--border)", transition: "background-color 0.2s" }} className="table-row-hover">
-                    <td style={{ padding: "1.25rem 1.5rem", color: "var(--text-h)", fontWeight: 500 }}>
-                      {new Date(record.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
-                    </td>
-                    <td style={{ padding: "1.25rem 1.5rem" }}>{record.weight}</td>
-                    <td style={{ padding: "1.25rem 1.5rem" }}>{record.calories} kcal</td>
-                    <td style={{ padding: "1.25rem 1.5rem" }}>
-                      <span style={{ 
-                        padding: "0.375rem 0.75rem", 
-                        borderRadius: "9999px", 
-                        fontSize: "0.75rem", 
-                        fontWeight: 600,
-                        backgroundColor: record.goalMet ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
-                        color: record.goalMet ? "#10b981" : "#ef4444",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em"
-                      }}>
-                        {record.goalMet ? "Goal Met" : "Over Goal"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      </div>
-    </AppLayout>
-=======
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import AppLayout from "../components/AppLayout";
+import Card from "../components/Card";
+import Button from "../components/Button";
+import Input from "../components/Input";
 import {
   LineChart,
   Line,
@@ -80,34 +16,37 @@ import {
   ReferenceLine,
 } from "recharts";
 
-// ─── Helper: Format date to readable string ───────────────────────────────────
+// Helper: Format date to readable string
 function formatDate(dateStr) {
   const d = new Date(dateStr);
-  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+  return d.toLocaleDateString(undefined, { day: "2-digit", month: "short" });
 }
 
-// ─── Sub-component: Summary Card ─────────────────────────────────────────────
-function SummaryCard({ label, value, unit = "kg", highlight = false, color }) {
+// Sub-component: Summary Card
+function SummaryCard({ label, value, unit = "kg", highlight = false, color = "var(--primary)" }) {
   return (
     <div style={{
-      background: "white",
-      border: `1px solid ${highlight ? color || "#68d391" : "#e2e8f0"}`,
-      borderRadius: 10,
-      padding: "14px 12px",
+      background: "var(--bg-surface)",
+      border: `1px solid ${highlight ? color : "var(--border)"}`,
+      borderRadius: "var(--radius-lg)",
+      padding: "1rem 0.75rem",
       textAlign: "center",
       flex: 1,
-      minWidth: 0,
+      minWidth: "100px",
+      boxShadow: "var(--shadow-sm)"
     }}>
-      <p style={{ margin: 0, fontSize: 11, color: "#888", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 }}>{label}</p>
-      <p style={{ margin: 0, fontSize: 22, fontWeight: 700, color: highlight ? (color || "#276749") : "#2d3748" }}>
+      <p style={{ margin: 0, fontSize: "0.6875rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.375rem" }}>
+        {label}
+      </p>
+      <p style={{ margin: 0, fontSize: "1.375rem", fontWeight: 700, color: highlight ? color : "var(--text-h)" }}>
         {value ?? "—"}
-        {value != null && <span style={{ fontSize: 13, fontWeight: 500 }}> {unit}</span>}
+        {value != null && value !== "✅" && <span style={{ fontSize: "0.8125rem", fontWeight: 500 }}> {unit}</span>}
       </p>
     </div>
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// Main Component
 function ProgressPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -151,6 +90,7 @@ function ProgressPage() {
   const handleLogWeight = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMsg("");
     const val = Number(weightInput);
     if (!weightInput || isNaN(val) || val <= 0) {
       setError("Please enter a valid positive weight.");
@@ -167,7 +107,7 @@ function ProgressPage() {
       const data = await res.json();
       if (res.ok) {
         setWeightInput("");
-        setSuccessMsg("✅ Weight logged!");
+        setSuccessMsg("✅ Weight logged successfully!");
         setTimeout(() => setSuccessMsg(""), 3000);
         await fetchData(); // refresh list
       } else {
@@ -196,18 +136,28 @@ function ProgressPage() {
     }
   };
 
-  if (authLoading || fetching) return <div style={{ padding: 20 }}>Loading...</div>;
-
-  if (!user) {
+  if (authLoading || fetching) {
     return (
-      <div style={{ padding: 20 }}>
-        <h2>Access Denied</h2>
-        <button onClick={() => navigate("/")}>Please Login</button>
-      </div>
+      <AppLayout>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+          <p style={{ color: 'var(--text-muted)' }}>Loading progress dashboard...</p>
+        </div>
+      </AppLayout>
     );
   }
 
-  // ─── Derived data ─────────────────────────────────────────────────────────
+  if (!user) {
+    return (
+      <AppLayout>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '50vh' }}>
+          <h2 style={{ color: 'var(--text-h)', marginBottom: '1rem' }}>Access Denied</h2>
+          <Button onClick={() => navigate("/")} variant="primary">Please Login</Button>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // Derived data
   // logs are newest-first from API; reverse for chart (oldest → newest)
   const chartData = [...logs].reverse().map((l) => ({
     date: formatDate(l.loggedAt),
@@ -225,189 +175,257 @@ function ProgressPage() {
     ? +(latestLog.weightKg - targetWeight).toFixed(1)
     : null;
 
-  const inputStyle = {
-    padding: "10px 14px",
-    border: error ? "1px solid #e53e3e" : "1px solid #cbd5e0",
-    borderRadius: 8,
-    fontSize: 15,
-    width: "100%",
-    boxSizing: "border-box",
-    marginTop: 4,
-  };
-
   return (
-    <div style={{ maxWidth: 480, margin: "0 auto", padding: "16px" }}>
-      {/* Header */}
-      <button
-        onClick={() => navigate("/dashboard")}
-        style={{ background: "none", border: "none", color: "#007bff", cursor: "pointer", fontSize: 14, marginBottom: 12 }}
-      >
-        ← Back to Dashboard
-      </button>
-      <h2 style={{ margin: "0 0 4px" }}>Progress</h2>
-      <p style={{ margin: "0 0 20px", color: "#666", fontSize: 13 }}>Track your weight over time.</p>
-
-      {/* ─── Log Weight Form ─────────────────────────────────────────────── */}
-      <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, marginBottom: 20 }}>
-        <h4 style={{ margin: "0 0 12px", fontSize: 14 }}>Log Today's Weight</h4>
-        <form onSubmit={handleLogWeight} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-          <div style={{ flex: 1 }}>
-            <input
-              type="number"
-              placeholder="e.g. 82.5"
-              value={weightInput}
-              onChange={(e) => { setWeightInput(e.target.value); setError(""); }}
-              min="1"
-              step="0.1"
-              style={inputStyle}
-            />
-            {error && <p style={{ color: "#e53e3e", fontSize: 12, margin: "4px 0 0" }}>{error}</p>}
-            {successMsg && <p style={{ color: "#276749", fontSize: 12, margin: "4px 0 0" }}>{successMsg}</p>}
-          </div>
+    <AppLayout>
+      <div style={{ maxWidth: "800px", margin: "0 auto", paddingBottom: "3rem" }}>
+        
+        {/* Header Button */}
+        <div style={{ marginBottom: "1.5rem" }}>
           <button
-            type="submit"
-            disabled={saving}
+            onClick={() => navigate("/dashboard")}
             style={{
-              padding: "10px 18px",
-              background: saving ? "#a0aec0" : "#4299e1",
-              color: "white",
+              background: "none",
               border: "none",
-              borderRadius: 8,
-              fontWeight: 600,
-              fontSize: 14,
-              cursor: saving ? "not-allowed" : "pointer",
-              marginTop: 4,
-              whiteSpace: "nowrap",
+              color: "var(--primary)",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+              fontWeight: 500,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.25rem",
+              padding: 0
             }}
           >
-            {saving ? "Saving..." : "Log kg"}
+            ← Back to Dashboard
           </button>
-        </form>
-      </div>
-
-      {/* ─── Empty State ─────────────────────────────────────────────────── */}
-      {logs.length === 0 && (
-        <div style={{ border: "1px dashed #cbd5e0", borderRadius: 12, padding: "32px 20px", textAlign: "center", color: "#a0aec0", marginBottom: 20 }}>
-          <p style={{ margin: 0, fontSize: 16 }}>📉 No weight logs yet.</p>
-          <p style={{ margin: "6px 0 0", fontSize: 13 }}>Log your first weight above to start tracking your progress.</p>
         </div>
-      )}
 
-      {logs.length > 0 && (
-        <>
-          {/* ─── Summary Cards ─────────────────────────────────────────── */}
-          <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-            <SummaryCard label="Start" value={firstLog?.weightKg} />
-            <SummaryCard label="Current" value={latestLog?.weightKg} highlight color="#4299e1" />
-            {change !== null && (
-              <SummaryCard
-                label="Change"
-                value={change > 0 ? `+${change}` : change}
-                highlight
-                color={change < 0 ? "#276749" : "#e53e3e"}
-              />
-            )}
-            {targetWeight != null ? (
-              <SummaryCard
-                label="To Goal"
-                value={remaining != null ? (remaining > 0 ? `-${remaining}` : "✅") : "—"}
-                highlight={remaining !== null && remaining <= 0}
-                color="#276749"
-              />
-            ) : (
-              <div style={{ flex: 1, minWidth: 0, background: "#fffbeb", border: "1px solid #f6ad55", borderRadius: 10, padding: "14px 12px", textAlign: "center" }}>
-                <p style={{ margin: 0, fontSize: 10, color: "#888", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>Target</p>
-                <p style={{ margin: 0, fontSize: 11, color: "#c05621" }}>Set in profile</p>
+        {/* Title */}
+        <div style={{ marginBottom: "2rem" }}>
+          <h1 style={{ fontSize: "2rem", marginBottom: "0.5rem", color: "var(--text-h)", fontWeight: 600 }}>
+            History & Progress
+          </h1>
+          <p style={{ color: "var(--text-muted)", fontSize: "1rem" }}>
+            Review your past records and track your weight journey over time.
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
+          
+          {/* Log Today's Weight Card */}
+          <Card header={<h3 style={{ margin: 0, fontSize: "1.125rem", color: "var(--text-h)", fontWeight: 600 }}>Log Weight</h3>}>
+            <form onSubmit={handleLogWeight} style={{ display: "flex", gap: "0.75rem", alignItems: "flex-end" }}>
+              <div style={{ flex: 1 }}>
+                <Input
+                  label="Weight (kg) *"
+                  type="number"
+                  placeholder="e.g. 82.5"
+                  value={weightInput}
+                  onChange={(e) => { setWeightInput(e.target.value); setError(""); }}
+                  min="1"
+                  step="0.1"
+                  error={error}
+                  required
+                />
               </div>
+              <div style={{ marginBottom: "1px" }}>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={saving}
+                  style={{ minWidth: "100px" }}
+                >
+                  {saving ? "Saving..." : "Log kg"}
+                </Button>
+              </div>
+            </form>
+            {successMsg && (
+              <p style={{ color: "#10b981", fontSize: "0.8125rem", marginTop: "0.5rem", fontWeight: 500 }}>
+                {successMsg}
+              </p>
             )}
-          </div>
+          </Card>
 
-          {/* ─── Recharts Line Chart ────────────────────────────────────── */}
-          <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 12, padding: "16px 8px 8px", marginBottom: 20 }}>
-            <h4 style={{ margin: "0 0 12px 12px", fontSize: 14, color: "#555" }}>Weight Trend</h4>
-            {chartData.length === 1 && (
-              <p style={{ margin: "0 0 8px 12px", fontSize: 12, color: "#a0aec0" }}>Log more days to see your trend chart.</p>
-            )}
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                <YAxis
-                  domain={["auto", "auto"]}
-                  tick={{ fontSize: 11 }}
-                  tickFormatter={(v) => `${v}kg`}
+          {/* Metric Stats Cards Grid */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <div style={{ display: "flex", gap: "0.75rem" }}>
+              <SummaryCard label="Start Weight" value={firstLog?.weightKg} />
+              <SummaryCard label="Current Weight" value={latestLog?.weightKg} highlight color="var(--primary)" />
+            </div>
+            <div style={{ display: "flex", gap: "0.75rem" }}>
+              {change !== null ? (
+                <SummaryCard
+                  label="Net Change"
+                  value={change > 0 ? `+${change}` : change}
+                  highlight
+                  color={change < 0 ? "#10b981" : "#ef4444"}
                 />
-                <Tooltip
-                  formatter={(value) => [`${value} kg`, "Weight"]}
-                  labelStyle={{ fontSize: 12 }}
-                  contentStyle={{ fontSize: 12, borderRadius: 8 }}
+              ) : (
+                <SummaryCard label="Net Change" value="—" />
+              )}
+              {targetWeight != null ? (
+                <SummaryCard
+                  label="Remaining To Goal"
+                  value={remaining != null ? (remaining > 0 ? `-${remaining}` : "✅") : "—"}
+                  highlight={remaining !== null && remaining <= 0}
+                  color="#10b981"
                 />
-                {targetWeight && (
-                  <ReferenceLine
-                    y={targetWeight}
-                    stroke="#38a169"
-                    strokeDasharray="4 4"
-                    label={{ value: "Goal", position: "insideTopRight", fontSize: 11, fill: "#38a169" }}
-                  />
-                )}
-                <Line
-                  type="monotone"
-                  dataKey="weight"
-                  stroke="#4299e1"
-                  strokeWidth={2.5}
-                  dot={{ r: 4, fill: "#4299e1" }}
-                  activeDot={{ r: 6 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* ─── Weight History Table ───────────────────────────────────── */}
-          <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
-            <h4 style={{ margin: 0, padding: "12px 16px", fontSize: 14, color: "#555", borderBottom: "1px solid #e2e8f0" }}>History</h4>
-            {logs.map((log) => (
-              <div
-                key={log.id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "10px 16px",
-                  borderBottom: "1px solid #f7fafc",
-                  background: confirmDeleteId === log.id ? "#fff5f5" : "white",
-                }}
-              >
-                <div>
-                  <span style={{ fontWeight: 600, fontSize: 15 }}>{log.weightKg} kg</span>
-                  <span style={{ marginLeft: 10, fontSize: 12, color: "#888" }}>{formatDate(log.loggedAt)}</span>
+              ) : (
+                <div style={{
+                  flex: 1,
+                  background: "var(--bg-surface)",
+                  border: "1px solid var(--warning)",
+                  borderRadius: "var(--radius-lg)",
+                  padding: "1rem 0.75rem",
+                  textAlign: "center",
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  boxShadow: "var(--shadow-sm)"
+                }}>
+                  <p style={{ margin: 0, fontSize: "0.6875rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>Target Weight</p>
+                  <button 
+                    onClick={() => navigate("/settings")}
+                    style={{ background: 'none', border: 'none', color: '#ecc94b', fontSize: '0.8125rem', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', padding: 0 }}
+                  >
+                    Set in settings
+                  </button>
                 </div>
-                {confirmDeleteId !== log.id ? (
-                  <button
-                    id={`delete-weight-${log.id}`}
-                    onClick={() => setConfirmDeleteId(log.id)}
-                    style={{ background: "none", border: "none", color: "#a0aec0", cursor: "pointer", fontSize: 20 }}
-                  >×</button>
-                ) : (
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <button
-                      id={`cancel-weight-delete-${log.id}`}
-                      onClick={() => setConfirmDeleteId(null)}
-                      style={{ fontSize: 12, padding: "4px 8px", borderRadius: 6, border: "1px solid #cbd5e0", background: "white", cursor: "pointer" }}
-                    >Cancel</button>
-                    <button
-                      id={`confirm-weight-delete-${log.id}`}
-                      onClick={() => handleDelete(log.id)}
-                      style={{ fontSize: 12, padding: "4px 8px", borderRadius: 6, border: "none", background: "#e53e3e", color: "white", cursor: "pointer" }}
-                    >Delete</button>
-                  </div>
-                )}
-              </div>
-            ))}
+              )}
+            </div>
           </div>
-        </>
-      )}
-    </div>
->>>>>>> 1315923189aa35117d277d46e10b2880fdf7d10b
+
+        </div>
+
+        {/* Empty State */}
+        {logs.length === 0 ? (
+          <div style={{ 
+            border: "2px dashed var(--border)", 
+            borderRadius: "var(--radius-xl)", 
+            padding: "3rem 1.5rem", 
+            textAlign: "center", 
+            color: "var(--text-muted)", 
+            marginBottom: "2rem" 
+          }}>
+            <p style={{ margin: 0, fontSize: "1.125rem", fontWeight: 500 }}>📉 No weight logs recorded yet.</p>
+            <p style={{ margin: "0.5rem 0 0", fontSize: "0.875rem" }}>Log today's weight above to start tracking your trends.</p>
+          </div>
+        ) : (
+          <>
+            {/* Chart Trend Card */}
+            <Card header={<h3 style={{ margin: 0, fontSize: "1.125rem", color: "var(--text-h)", fontWeight: 600 }}>Weight Trends</h3>} style={{ marginBottom: "1.5rem" }}>
+              <div style={{ padding: "0.5rem 0" }}>
+                {chartData.length === 1 && (
+                  <p style={{ margin: "0 0 1rem", fontSize: "0.8125rem", color: "var(--text-muted)" }}>
+                    Log more days to see your dynamic trend chart.
+                  </p>
+                )}
+                <ResponsiveContainer width="100%" height={260}>
+                  <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.6} />
+                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: "var(--text-muted)" }} />
+                    <YAxis
+                      domain={["auto", "auto"]}
+                      tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+                      tickFormatter={(v) => `${v}kg`}
+                    />
+                    <Tooltip
+                      formatter={(value) => [`${value} kg`, "Weight"]}
+                      labelStyle={{ fontSize: 12, color: "var(--text-h)" }}
+                      contentStyle={{ fontSize: 12, borderRadius: 8, background: "var(--bg-surface)", border: "1px solid var(--border)" }}
+                      itemStyle={{ color: "var(--text)" }}
+                    />
+                    {targetWeight && (
+                      <ReferenceLine
+                        y={targetWeight}
+                        stroke="#10b981"
+                        strokeDasharray="4 4"
+                        strokeWidth={1.5}
+                        label={{ value: "Goal Target", position: "insideTopRight", fontSize: 11, fill: "#10b981", fontWeight: 600 }}
+                      />
+                    )}
+                    <Line
+                      type="monotone"
+                      dataKey="weight"
+                      stroke="var(--primary)"
+                      strokeWidth={3}
+                      dot={{ r: 4, fill: "var(--primary)" }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+
+            {/* History List Card */}
+            <Card header={<h3 style={{ margin: 0, fontSize: "1.125rem", color: "var(--text-h)", fontWeight: 600 }}>Log History</h3>} style={{ padding: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {logs.map((log, index) => (
+                  <div
+                    key={log.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "1rem 1.5rem",
+                      borderBottom: index === logs.length - 1 ? "none" : "1px solid var(--border)",
+                      background: confirmDeleteId === log.id ? "rgba(239, 68, 68, 0.05)" : "var(--bg-surface)",
+                      transition: "background-color 0.2s"
+                    }}
+                  >
+                    <div>
+                      <span style={{ fontWeight: 600, fontSize: "1.0625rem", color: "var(--text-h)" }}>{log.weightKg} kg</span>
+                      <span style={{ marginLeft: "0.75rem", fontSize: "0.8125rem", color: "var(--text-muted)" }}>
+                        {new Date(log.loggedAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    </div>
+
+                    {confirmDeleteId !== log.id ? (
+                      <button
+                        id={`delete-weight-${log.id}`}
+                        onClick={() => setConfirmDeleteId(log.id)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "var(--text-muted)",
+                          cursor: "pointer",
+                          fontSize: "1.5rem",
+                          lineHeight: 1,
+                          padding: "0.25rem 0.5rem"
+                        }}
+                        title="Delete log"
+                      >
+                        ×
+                      </button>
+                    ) : (
+                      <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <Button
+                          id={`cancel-weight-delete-${log.id}`}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setConfirmDeleteId(null)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          id={`confirm-weight-delete-${log.id}`}
+                          variant="danger"
+                          size="sm"
+                          onClick={() => handleDelete(log.id)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </>
+        )}
+      </div>
+    </AppLayout>
   );
 }
 
